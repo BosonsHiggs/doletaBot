@@ -47,7 +47,7 @@ async def on_ready():
 	print('------')
 
 @client.tree.command()
-@commands.cooldown(1, 5, commands.BucketType.user)
+@commands.cooldown(1, 120, commands.BucketType.user)
 @commands.has_permissions(administrator = True)
 @app_commands.describe(
 	payer_name = "Seu nome completo",
@@ -58,7 +58,7 @@ async def on_ready():
 )
 async def pay_pix(interaction: discord.Interaction, payer_name: str, payer_email: str, payer_cpf: str, payer_phone: str, value: float):
 	"""Fazer pagamentos com PIX pela API PagHiper"""
-	
+
 	if value < 3.0:
 		await interaction.response.send_message("O valor deve ser maior que zero.")
 		return
