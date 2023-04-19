@@ -36,6 +36,8 @@ export PAGHIPER_API_KEY='your_paghiper_api_key'
 export PAGHIPER_TOKEN='your_paghiper_token'
 export REDIS_URL='redis://localhost:6379'
 export REDIS_PASSWORD='your_redis_password'
+export CHANNEL_DOLETA_SUPPORT='your_channel_support_id'
+export MY_GUILD_DOLETA='your_support_server_id'
 ```
 
 No Windows, configure as variáveis no prompt de comando:
@@ -45,6 +47,8 @@ set PAGHIPER_API_KEY=your_paghiper_api_key
 set PAGHIPER_TOKEN=your_paghiper_token
 set REDIS_URL=redis://localhost:6379
 set REDIS_PASSWORD=your_redis_password
+set CHANNEL_DOLETA_SUPPORT='your_channel_support_id'
+set MY_GUILD_DOLETA='your_support_server_id'
 ```
 
 # Uso
