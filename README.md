@@ -71,7 +71,7 @@ I. Veja os procedimentos na página https://ajuda.sigecloud.com.br/como-obter-a-
 
 Este projeto está licenciado sob a Licença Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0 Internacional (CC BY-NC-SA 4.0). Consulte o arquivo LICENSE para obter detalhes.
 
-- Autor: Aril Ogai
-- Contato do Discord: Aril Ogai#5646
+- Autor: Aril Ogai and Vexy
+- Contato do Discord: Aril Ogai#5646 and Vexy#1212
 - E-mail de suporte: bosonshiggsteam@gmail.com
 
