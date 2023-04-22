@@ -10,6 +10,7 @@ import json
 import functools
 import discord
 import re
+import uuid
 
 from datetime import timedelta, datetime
 
@@ -47,5 +48,6 @@ __all__ = [
     'DISCORD_CREDENTIALS',
     'PayPal',
     'MySQL',
-    'Utils'
+    'Utils',
+    'uuid'
     ]

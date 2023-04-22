@@ -6,7 +6,8 @@ from . import (
 	timedelta, 
 	pymysql,
 	re,
-	json
+	json, 
+	uuid
 )
 
 class ButtonLink(discord.ui.View):
@@ -21,19 +22,20 @@ class ButtonLink(discord.ui.View):
 """
 DECORATORS
 """
-def handle_aiohttp_errors(func):
-	@functools.wraps(func)
-	async def wrapper(*args, **kwargs):
-		try:
-			result = await func(*args, **kwargs)
-			return result
-		except aiohttp.ClientError as e:
-			print(f"Aiohttp error occurred: {e}")
-			return None
-		except Exception as e:
-			print(f"An unexpected error occurred: {e}")
-			return None
-	return wrapper
+class Decorators:
+	def handle_aiohttp_errors(self, func):
+		@functools.wraps(func)
+		async def wrapper(*args, **kwargs):
+			try:
+				result = await func(*args, **kwargs)
+				return result
+			except aiohttp.ClientError as e:
+				print(f"Aiohttp error occurred: {e}")
+				return None
+			except Exception as e:
+				print(f"An unexpected error occurred: {e}")
+				return None
+		return wrapper
 
 """
 FUNCTIONS
@@ -53,7 +55,7 @@ class PayPal:
 		self.PAYPAL_SECRET = PAYPAL_SECRET
 		self.PAYPAL_API_BASE_URL = PAYPAL_API_BASE_URL
 
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def get_paypal_access_token(self):
 		async with aiohttp.ClientSession() as session:
 			auth = aiohttp.BasicAuth(self.PAYPAL_CLIENT_ID, self.PAYPAL_SECRET)
@@ -62,7 +64,7 @@ class PayPal:
 				response = await resp.json()
 				return response['access_token']
 
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def check_payment_status(self, order_id):
 		access_token = await self.get_paypal_access_token()
 		headers = {
@@ -74,7 +76,7 @@ class PayPal:
 				response = await resp.json()
 				return response['status'] == 'COMPLETED'
 			
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def create_paypal_order(self, amount):
 		access_token = await self.get_paypal_access_token()
 		headers = {
@@ -102,7 +104,7 @@ class PayPal:
 				response = await resp.json()
 				return response
 
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def get_paypal_order(self, order_id):
 		access_token = await self.get_paypal_access_token()
 		headers = {
@@ -115,7 +117,7 @@ class PayPal:
 				return response
 
 	#capture payment by order_id
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def capture_order(self, order_id):
 		url = f"https://api.sandbox.paypal.com/v2/checkout/orders/{order_id}/capture"
 		headers = {
@@ -131,7 +133,7 @@ class PayPal:
 			return True
 		return False
 
-	@handle_aiohttp_errors
+	@Decorators().handle_aiohttp_errors
 	async def get_pending_list_payments(self):
 		access_token = await self.get_paypal_access_token()
 		headers = {
@@ -193,6 +195,40 @@ class PayPal:
 					buyers.append(buyer)
 					
 				return buyers
+
+	async def transfer_money_to_email(self, email, amount):
+		headers = {
+			"Authorization": f"Bearer {await self.get_paypal_access_token()}",
+			"Content-Type": "application/json",
+		}
+		data = {
+			"sender_batch_header": {
+				"sender_batch_id": f"batch-{uuid.uuid4()}",
+				"email_subject": "You have a payment",
+			},
+			"items": [
+				{
+					"recipient_type": "EMAIL",
+					"amount": {"value": amount, "currency": "BRL"},
+					"note": "Thank you.",
+					"receiver": email,
+					"sender_item_id": str(uuid.uuid4()),
+				}
+			],
+		}
+		async with aiohttp.ClientSession() as session:
+			async with session.post(
+				f"{self.PAYPAL_API_BASE_URL}/v1/payments/payouts",
+				headers=headers,
+				json=data,
+				auth=aiohttp.BasicAuth(self.PAYPAL_CLIENT_ID, self.PAYPAL_SECRET),
+			) as resp:
+				if resp.status == 201:
+					response = await resp.json()
+					return response["batch_header"]["batch_status"] == "SUCCESS"
+				else:
+					print(f"Transfer failed: {resp.reason}")
+					return False
 
 """"
 MYSQL

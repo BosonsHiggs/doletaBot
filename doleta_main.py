@@ -234,9 +234,9 @@ async def delete_all_table(interaction: discord.Interaction):
 @commands.has_permissions(administrator=True)
 @app_commands.describe(amount="Valor da compra")
 async def payment(interaction: discord.Interaction, amount: float):
-	"""
-	Criar pagamento
-	"""
+	"""Cria um pagamento"""
+
+	await interaction.response.defer()
 	guild = interaction.guild
 	order = await PAYPAL.create_paypal_order(amount)
 	order_id = order["id"]
@@ -252,7 +252,7 @@ async def payment(interaction: discord.Interaction, amount: float):
 	)
 
 	if approval_url is None:
-		await interaction.followup(content="Houve um erro ao processar a compra.")
+		await interaction.followup.send(content="Houve um erro ao processar a compra.")
 		return
 
 	content = f"O membro {interaction.user} (ID:`{interaction.user.id}`), comprou o produto de ordem `{order_id}` no valor de `R${amount}`! Caso o cliente tenha enfrentado algum erro envie o link abaixo para ele continuar comprando:\n{approval_url}"
@@ -267,38 +267,62 @@ async def payment(interaction: discord.Interaction, amount: float):
 	img = qr.make_image(fill_color="black", back_color="white")
 	img.save(img_buffer, format='PNG')
 	img_buffer.seek(0)
+	file = discord.File(img_buffer, filename="qrcode.png")
 
 	#View
 	view = ButtonLink(approval_url, "Clique aqui!")
+	
 	# Envia a imagem como um arquivo
-	await interaction.response.send_message(
-		f'Você está comprando R${amount} e sua ordem é `{order_id}`!',
-		file=discord.File(img_buffer, filename="qrcode.png"),
-		view=view, ephemeral=True
+	await interaction.followup.send(
+		content=f'Você está comprando R${amount} e sua ordem é `{order_id}`!',
+		file=file,
+		view=view, 
+		ephemeral=True
 	)
 
+# command 3
 @client.tree.command()
 @commands.cooldown(1, 120, commands.BucketType.user)
 @commands.has_permissions(administrator=True)
 async def clear_payments(interaction: discord.Interaction):
+	"""Limpar a tabela de pagamentos pendentes"""
 	MYSQL.clear_payments_table()
 
 	await interaction.response.send_message(
 		f'O banco de dados foi varrido com sucesso!', ephemeral=True
 	)
 
-#command 3
+#command 4
 @client.tree.command()
 @commands.cooldown(1, 120, commands.BucketType.user)
 @commands.has_permissions(administrator=True)
 @app_commands.describe(order_id="Ordem do pagamento")
 async def verify_order(interaction: discord.Interaction, order_id: str):
+	"""Verificar o estado de uma transação usando a ordem de pagamento"""
 	payment_status = await PAYPAL.check_payment_status(order_id)
 
 	await interaction.response.send_message(
 		f'payment_status: {payment_status}', ephemeral=True
 	)
 
+@client.tree.command()
+@commands.cooldown(1, 120, commands.BucketType.user)
+@commands.has_permissions(administrator=True)
+@app_commands.describe(email="E-mail associado ao PayPal", amount="Dinheiro a ser transferido")
+async def transfer_money(interaction: discord.Interaction, email: str, amount: float):
+	"""Transferir dinheiro para uma conta PayPal usando E-mail"""
+	result = await PAYPAL.transfer_money_to_email(email, amount)
+
+	if result:
+		await interaction.response.send_message(
+			f'O pagamento de R${amount} foi enviado para a conta {email}!', ephemeral=True
+		)
+	else:
+		await interaction.response.send_message(
+			f'Ocorreu algom erro inesperado!', ephemeral=True
+		)
+
+##Tasks
 @tasks.loop(seconds=20)
 async def check_payments(bot: discord.Client):
 	connection = MYSQL.get_mysql_connection()
