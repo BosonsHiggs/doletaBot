@@ -131,7 +131,7 @@ This project is for educational purposes only. Use it at your own risk. The auth
 
 # Contacts
 
-- Autor: Aril Ogai
-- Contato do Discord: Aril Ogai#5646
+- Autor: Aril Ogai and Vexy
+- Contato do Discord: Aril Ogai#5646 and Vexy#1212
 - E-mail de suporte: bosonshiggsteam@gmail.com
 
