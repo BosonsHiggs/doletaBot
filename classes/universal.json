@@ -1,0 +1,52 @@
+{
+    "on_error": [
+        {
+            "1":"Olá <@{0}>! Parece que você não tem permissões suficientes!",
+            "2":"Hello <@{0}>! Looks like you don't have enough permissions!",
+            "3":"Erro! Deixe o cargo do bot acima de todos os cargos para um gerenciamento eficiente!",
+            "4":"Error! Put the bot role above all others for efficient management!",
+            "5":"Erro! Você entrou com um atributo de forma errada! Rode o comando novamente com os argumentos corretos!",
+            "6":"Error! You entered an attribute wrong! Run the command again with the correct arguments!",
+            "7":"Erro! Você usou um argumento com tipo errado! Verifique se não trocou letras por números, números por letras, etc!",
+            "8":"Error! You used an argument with the wrong type! Make sure you haven't swapped letters for numbers, numbers for letters, etc!",
+            "9":"**Sugestão 01**: Você ou o bot está sem permissões! Se o problema for com bot, por favor, deixe o mesmo acima dos outros cargos!...\n> **Sugestão 02**: Verifique também se o cargo ou membro existe!\n> **Sugestão 03**: acesse o nosso servidor https://discord.gg/GrDXnctrNM, pegue um cargo nos idiomas disponíveis (PT-BR, EN-US e ES-ES) e peça ajuda ao criador *Aril Ogai#5646*.\n**Nota**: de qualquer forma, revise os parâmetros que foram passados! Tenho convicção que você entrou com alguma coisa errada!",
+            "10":"**Suggestion 01**: You or the bot has no permissions! If the problem is with bot, please leave the same above the other roles!...\n> **Suggestion 02**: Also check if the role or member exists!\n> **Suggestion 03**: access our server https://discord.gg/GrDXnctrNM, get a role in the available languages (PT-BR, EN-US and ES-ES) and ask the creator *Aril Ogai#5646* for help.\n**Note**: anyway, review the parameters that were passed! I'm convinced you got something wrong!"
+        }
+    ],
+    "on_command_error": [
+        {
+            "1":"Você não pode usar o comando `{0}{1}` por {2} segundos!",
+            "2":"You cannot use the `{0}{1}` command for {2} seconds!",
+            "3":"Olá {0}! Parece que você não tem permissões suficientes!",
+            "4":"Hello {0}! Looks like you don't have enough permissions!",
+            "5":"Erro! Deixe o cargo do bot acima de todos os cargos para um gerenciamento eficiente!",
+            "6":"Error! Put the bot role above all others for efficient management!",
+            "7":"Erro! Você entrou com um atributo de forma errada! Rode o comando novamente com os argumentos corretos!",
+            "8":"Error! You entered an attribute wrong! Run the command again with the correct arguments!",
+            "9":"Erro! Você usou um argumento com tipo errado! Verifique se não trocou letras por números, números por letras, etc!",
+            "10":"Error! You used an argument with the wrong type! Make sure you haven't swapped letters for numbers, numbers for letters, etc!",
+            "11":"**Sugestão 01**: Você ou o bot está sem permissões! Se o problema for com bot, por favor, deixe o mesmo acima dos outros cargos!...\n> **Sugestão 02**: Verifique também se o cargo ou membro existe!\n> **Sugestão 03**: acesse o nosso servidor https://discord.gg/GrDXnctrNM, pegue um cargo nos idiomas disponíveis (PT-BR, EN-US e ES-ES) e peça ajuda ao criador *Aril Ogai#5646*.\n**Nota**: de qualquer forma, revise os parâmetros que foram passados! Tenho convicção que você entrou com alguma coisa errada!",
+            "12":"**Suggestion 01**: You or the bot has no permissions! If the problem is with bot, please leave the same above the other roles!...\n> **Suggestion 02**: Also check if the role or member exists!\n> **Suggestion 03**: access our server https://discord.gg/GrDXnctrNM, get a role in the available languages (PT-BR, EN-US and ES-ES) and ask the creator *Aril Ogai#5646* for help.\n**Note**: anyway, review the parameters that were passed! I'm convinced you got something wrong!",
+            "13":"Você não pode usar o comando **`{0}{1}`** por {2}!",
+            "14":"You cannot use the **`{0}{1}`** command for {2}!",
+            "15":"**{0}a**, **{1}d**, **{2}h**, **{3}min** e **{4}s**",
+            "16":"**{0}y**, **{1}d**, **{2}h**, **{3}min** and **{4}s**"
+        }
+    ],
+    "on_application_command_error": [
+        {
+            "1":"Você não pode usar o comando `{0}{1}` por {2} segundos!",
+            "2":"You cannot use the `{0}{1}` command for {2} seconds!",
+            "3":"Olá {0}! Parece que você não tem permissões suficientes!",
+            "4":"Hello {0}! Looks like you don't have enough permissions!",
+            "5":"Erro! Deixe o cargo do bot acima de todos os cargos para um gerenciamento eficiente!",
+            "6":"Error! Put the bot role above all others for efficient management!"
+        }
+    ],
+    "on_reminder": [
+        {
+            "1":"O cargo `{0}` expirou para o usuário {1}!",
+            "2":"The role `{0}` has expired for user {1}!"
+        }
+    ]
+}

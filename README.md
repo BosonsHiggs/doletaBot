@@ -1,25 +1,28 @@
-# Bot de Pagamento PIX para Discord
+# Discord Bot - Doleta Payments
 
-Este projeto é um bot de pagamento para Discord que utiliza o sistema PIX com a API da PagHiper. O bot permite a geração de cobranças e fornece links e QR Codes para pagamentos. Além disso, verifica em tempo real se o pagamento foi realizado com sucesso.
+This is a simple Discord bot that uses the PayPal API to process payments and manage roles. It allows administrators to create payments, check payment status, and automatically update roles based on successful payments.
 
-# Pré-requisitos
-- Python 3.7 ou superior
-- Conta na PagHiper com acesso à API
-- Servidor Redis
-- Bibliotecas Python: discord.py>=2.2.0, aiohttp==3.8.1 e aioredis==2.1.0
+# Features
+1. Create a PayPal order for a user.
+2. Generate a QR code with the approval link for the user to scan.
+3. Check the payment status of an order.
+4. Automatically update the user's role based on successful payments.
+5. Handles errors and exceptions gracefully.
 
-# Instalação
-I. Clone o repositório:
+# Requirements
+- Python 3.8+
+- Discord.py 2.0+
+- aiohttp 3.8+
+- pymysql 1.0.2+
+- qrcode 7.3+
+- A Discord bot token
+- A PayPal account with API credentials (Client ID and Secret)
+- A MySQL database
+
+# Instalation
+I. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/pix-payment-bot.git
-cd pix-payment-bot
-```
-
-II. Crie um ambiente virtual e instale as dependências:
-```bash
-python3 -m venv venv
-source venv/bin/activate  # No Windows, use `venv\Scripts\activate`
-pip install -r requirements.txt
+git git@github.com:BosonsHiggs/doletaBot.git
 ```
 
 III. Configure as variáveis de ambiente necessárias:
@@ -29,47 +32,104 @@ III. Configure as variáveis de ambiente necessárias:
 - REDIS_URL: A URL de conexão com seu servidor Redis (exemplo: redis://localhost:6379).
 - REDIS_PASSWORD: A senha do seu servidor Redis, se aplicável.
 
-No Linux ou macOS, configure as variáveis no terminal:
+On Linux or MacOS:
 ```bash
 export DISCORD_BOT_TOKEN='your_discord_bot_token'
-export PAGHIPER_API_KEY='your_paghiper_api_key'
-export PAGHIPER_TOKEN='your_paghiper_token'
-export REDIS_URL='redis://localhost:6379'
-export REDIS_PASSWORD='your_redis_password'
-export CHANNEL_DOLETA_SUPPORT='your_channel_support_id'
-export MY_GUILD_DOLETA='your_support_server_id'
-```
+export PAYPAL_BOT_ID='your_paypal_client_id'
+export PAYPAL_BOT_SECRET='your_paypal_secret'
+export MYSQL_USER='your_mysql_user'
+export MYSQL_PASSWORD='your_mysql_password'
+export MYSQL_DATABASE='your_database_name'
 
-No Windows, configure as variáveis no prompt de comando:
+On Windows:
 ```bash
-set DISCORD_BOT_TOKEN=your_discord_bot_token
-set PAGHIPER_API_KEY=your_paghiper_api_key
-set PAGHIPER_TOKEN=your_paghiper_token
-set REDIS_URL=redis://localhost:6379
-set REDIS_PASSWORD=your_redis_password
-set CHANNEL_DOLETA_SUPPORT='your_channel_support_id'
-set MY_GUILD_DOLETA='your_support_server_id'
+set DISCORD_BOT_TOKEN='your_discord_bot_token'
+set PAYPAL_BOT_ID='your_paypal_client_id'
+set PAYPAL_BOT_SECRET='your_paypal_secret'
+set MYSQL_USER='your_mysql_user'
+set MYSQL_PASSWORD='your_mysql_password'
+set MYSQL_DATABASE='your_database_name'
 ```
 
-# Uso
+# Installation and Configuration
+To install and configure the Discord Doleta Bot, follow the steps below:
 
-I. Execute o bot:
+1. Clone the repository.
+2. Install the necessary dependencies using pip install -r requirements.txt.
+3. Create a .env file in the project root and add your PayPal and MySQL database credentials, along with the Discord bot token and any other necessary information.
+4. Set up the MySQL database to store payments.
+5. Start the bot by running python main.py.
+
+# Setting up MySQL on Linux and Windows
+## Linux: 
+
+Update your package list:
 ```bash
-python bot.py
+sudo apt update
+```
+Install the MySQL server package:
+```bash
+sudo apt install mysql-server
+```
+Start the MySQL service:
+```bash
+sudo systemctl start mysql
+```
+Enable MySQL to start at boot:
+```bash
+sudo systemctl enable mysql
+```
+Run the MySQL secure installation script to secure your database server:
+```bash
+sudo mysql_secure_installation
+```
+Log in to MySQL as the root user:
+```bash
+sudo mysql -u root -p
 ```
 
-II. No Discord, use o comando /pagar (em slash commands) com os seguintes parâmetros:
+## After logging in to MySQL, you can create a new database and user for your application:
+
+Create a new database:
+```sql
+CREATE DATABASE mydb;
 ```
-/pagar pagar <nome_do_pagador> <email_do_pagador> <cpf_do_pagador> <telefone_do_pagador> <valor>
+Create a new user and set a password for the user:
+```sql
+CREATE USER 'myuser'@'localhost' IDENTIFIED BY 'mypassword';
 ```
+Grant all privileges for the new user on the new database:
+```sql
+GRANT ALL PRIVILEGES ON mydb.* TO 'myuser'@'localhost';
+```
+Flush privileges to apply the changes:
+```sql
+FLUSH PRIVILEGES;
+```
+Exit MySQL:
+```sql
+EXIT;
+```
+Now you have MySQL set up on your Linux or Windows system, and you can use the new database and user for your application.
 
-# Gerando credenciais para a PagHiper:
+# Commands
 
-I. Veja os procedimentos na página https://ajuda.sigecloud.com.br/como-obter-a-apikey-e-o-token-da-paghiper/
+To use the bot, you need to be an administrator of your Discord server. The bot provides the following commands:
 
-# Licença
+- /payment <amount>: Create a PayPal order for the specified amount.
+- /verify_order <order_id>: Check the payment status of an order.
+- /delete_all_table: Delete the payments table from the database.
 
-Este projeto está licenciado sob a Licença Creative Commons Atribuição-NãoComercial-CompartilhaIgual 4.0 Internacional (CC BY-NC-SA 4.0). Consulte o arquivo LICENSE para obter detalhes.
+The bot will automatically update the user's role and send a message in the specified channel when a payment is successful.
+
+# Notes
+This bot uses the PayPal sandbox environment for testing. Replace the sandbox URLs with production URLs for real transactions.
+Make sure the bot has the necessary permissions to manage roles in your Discord server.
+
+# Disclaimer
+This project is for educational purposes only. Use it at your own risk. The author is not responsible for any consequences resulting from the use of this bot.
+
+# Contacts
 
 - Autor: Aril Ogai
 - Contato do Discord: Aril Ogai#5646
