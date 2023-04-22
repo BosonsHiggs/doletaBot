@@ -16,11 +16,12 @@ DISCORD_DOLETA_TOKEN = DISCORD_CREDENTIALS[0]
 CHANNEL_SUPPORT = DISCORD_CREDENTIALS[1]
 MY_GUILD_DOLETA = DISCORD_CREDENTIALS[2]
 ROLE_NAME = DISCORD_CREDENTIALS[3]
+CHANNEL_LOGS_DOLETA = DISCORD_CREDENTIALS[4]
 
 ## PAYPAL CREDENTIALS
 PAYPAL_CLIENT_ID = PAYPAL_CREDENTIALS[0]
 PAYPAL_SECRET = PAYPAL_CREDENTIALS[1]
-PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com'
+PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com' #https://api-m.paypal.com
 PAYPAL = PayPal(PAYPAL_CLIENT_ID, PAYPAL_SECRET, PAYPAL_API_BASE_URL)
 
 # Your MySQL database credentials
@@ -86,7 +87,7 @@ class MyClient(discord.Client):
 				g += f'Channel ID: {channel_error.id} - {channel_error.name}\n'
 				g += f'{author.name}#{author.discriminator} (ID: {author.id}): {ctx.message.content}\n'
 				g += f'```'
-				channel = bosons_guild.get_channel(self.log_channel_id)
+				channel = bosons_guild.get_channel(int(CHANNEL_LOGS_DOLETA))
 
 				await channel.send(content=g)
 			except:
@@ -405,7 +406,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 			g += f'Server: {guild_id} - {guild.name}\n'
 			g += f'{author.name}#{author.discriminator}\n'
 			g += f'```'
-			channel = bosons_guild.get_channel(int(CHANNEL_SUPPORT))
+			channel = bosons_guild.get_channel(int(CHANNEL_LOGS_DOLETA))
 
 			await channel.send(content=g)
 		except:

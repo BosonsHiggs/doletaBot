@@ -22,7 +22,7 @@ from classes.utils import *
 
 PAYPAL_CREDENTIALS = (os.getenv("PAYPAL_GENERALBOT_ID"), os.getenv("PAYPAL_GENERALBOT_SECRET"))
 MYSQL_CREDENTIALS = ("localhost", os.getenv("MYSQL_USER"), os.getenv("MYQSL_PASSWORD"), os.getenv("MYSQL_DATABASE_NAME"))
-DISCORD_CREDENTIALS = (os.getenv('DISCORD_DOLETA_TOKEN'), os.getenv("CHANNEL_DOLETA_SUPPORT"), os.getenv("MY_GUILD_DOLETA"), "DOLETA USER")
+DISCORD_CREDENTIALS = (os.getenv('DISCORD_DOLETA_TOKEN'), os.getenv("CHANNEL_DOLETA_SUPPORT"), os.getenv("MY_GUILD_DOLETA"), "DOLETA USER", os.getenv("CHANNEL_LOGS_DOLETA"))
 
 __all__ = [
     'ButtonLink',
