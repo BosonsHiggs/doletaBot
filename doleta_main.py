@@ -8,19 +8,36 @@ ClientError: é uma exceção definida na biblioteca aiohttp que é lançada qua
 https://gist.github.com/AbstractUmbra/a9c188797ae194e592efe05fa129c57f
 """
 
+
 from classes import *
+
+##DISCORD CREDENTIALS
+DISCORD_DOLETA_TOKEN = DISCORD_CREDENTIALS[0]
+CHANNEL_SUPPORT = DISCORD_CREDENTIALS[1]
+MY_GUILD_DOLETA = DISCORD_CREDENTIALS[2]
+ROLE_NAME = DISCORD_CREDENTIALS[3]
+
+## PAYPAL CREDENTIALS
+PAYPAL_CLIENT_ID = PAYPAL_CREDENTIALS[0]
+PAYPAL_SECRET = PAYPAL_CREDENTIALS[1]
+PAYPAL_API_BASE_URL = 'https://api-m.sandbox.paypal.com'
+PAYPAL = PayPal(PAYPAL_CLIENT_ID, PAYPAL_SECRET, PAYPAL_API_BASE_URL)
+
+# Your MySQL database credentials
+MYSQL_HOST = MYSQL_CREDENTIALS[0]
+MYSQL_USER = MYSQL_CREDENTIALS[1]
+MYSQL_PASSWORD = MYSQL_CREDENTIALS[2]
+MYSQL_DATABASE = MYSQL_CREDENTIALS[3]
+MYSQL = MySQL(MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE)
+
+## UTILS FUNCTIONS
+UTILS = Utils()
 
 intents = discord.Intents.default()
 intents.typing = False
 intents.presences = False
 
 member_timezone = pytz.timezone('America/Sao_Paulo')
-
-DISCORD_DOLETA_TOKEN = os.environ['DISCORD_DOLETA_TOKEN']
-
-CHANNEL_SUPPORT = os.getenv("CHANNEL_DOLETA_SUPPORT")
-MY_GUILD_DOLETA = os.getenv("MY_GUILD_DOLETA")
-ROLE_NAME = "DOLETA USER" #ROLE
 
 MY_GUILD = discord.Object(id=int(MY_GUILD_DOLETA))  # replace with your guild id
 
@@ -38,7 +55,7 @@ class MyClient(discord.Client):
 	async def on_ready(self) -> None:
 		print(f'{self.user.name} has connected to Discord!')
 		try:
-			create_payments_table()
+			MYSQL.create_payments_table()
 		except Exception as e:
 			print(e)
 		try:
@@ -118,37 +135,37 @@ class MyClient(discord.Client):
 				await logwrite(error)
 
 		if isinstance(error, command[0]):
-			ccc=translator("on_command_error", str(contLan(guild_id, 6)))
+			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
 			await ctx.send(f'> *{ccc}* 😪')
 
 		if isinstance(error, command[1]):
-			ccc=translator("on_command_error", str(contLan(guild_id, 3)))
+			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 3)))
 			await ctx.send(f'> *{ccc}* 😪')
 		elif isinstance(error, command[0]):
-			ccc=translator("on_command_error", str(contLan(guild_id, 2)))
+			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 2)))
 			name = f'<@{author.id}>'
 			await ctx.send(f'> *{ccc}* 😪'.format(name))
 
 		if isinstance(error, command[5]):
-			ccc=translator("on_command_error", str(contLan(guild_id, 6)))
+			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
 			await ctx.send(f'> {ccc} 😪')
 
 		if isinstance(error, command[23]):
-			ccc=translator("on_command_error", str(contLan(guild_id, 6)))
+			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
 			await ctx.send(f'> {ccc} 😪')
 
 		for key in range(19, 22):
 			if isinstance(error, command[key]):
-				ccc=translator("on_command_error", str(contLan(guild_id, 5)))
+				ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 5)))
 				await ctx.send(f'> {ccc} 😪')
 		
 		if isinstance(error, commands.CommandOnCooldown):
 			try:
 				await ctx.defer(ephemeral=True)
 				retryAfter = [math.floor(math.ceil(error.retry_after) / 360), math.floor(error.retry_after / 60), error.retry_after % 86400]
-				year, days, hours, minutes, seconds = format_seconds_time(int(retryAfter[2]))
-				ccc1=translator("on_command_error", str(contLan(guild_id, 7)))
-				ccc2=translator("on_command_error", str(contLan(guild_id, 8)))
+				year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
+				ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
+				ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
 
 				tempo = ccc2.format(year, days, hours, minutes, seconds)
 				await ctx.send(f'*{ccc1}* ⏰'.format("/", str(ctx.command), tempo))
@@ -163,8 +180,8 @@ class MyClient(discord.Client):
 						await ctx.defer(ephemeral=True)
 						retryAfter = [math.floor(math.ceil(error.original.retry_after) / 360), math.floor(error.original.retry_after / 60), error.original.retry_after % 86400]
 						year, days, hours, minutes, seconds = format_seconds_time(int(retryAfter[2]))
-						ccc1=translator("on_command_error", str(contLan(guild_id, 7)))
-						ccc2=translator("on_command_error", str(contLan(guild_id, 8)))
+						ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
+						ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
 
 						tempo = ccc2.format(year, days, hours, minutes, seconds)
 						await ctx.send(f'*{ccc1}* ⏰'.format("/", str(ctx.command), tempo))
@@ -205,7 +222,7 @@ async def delete_all_table(interaction: discord.Interaction):
 	"""
 	Deletar a tabela de pagamentos!
 	"""
-	delete_payments_table()
+	MYSQL.delete_payments_table()
 
 	await interaction.response.send_message(
 		f'A tabela foi deletada com sucesso!', ephemeral=True
@@ -221,12 +238,12 @@ async def payment(interaction: discord.Interaction, amount: float):
 	Criar pagamento
 	"""
 	guild = interaction.guild
-	order = await create_paypal_order(amount)
+	order = await PAYPAL.create_paypal_order(amount)
 	order_id = order["id"]
 
 	try:
-		create_payments_table()
-		save_payment(interaction.user.id, order_id, amount)
+		MYSQL.create_payments_table()
+		MYSQL.save_payment(interaction.user.id, order_id, amount)
 	except Exception as e:
 		print(e)
 
@@ -252,7 +269,7 @@ async def payment(interaction: discord.Interaction, amount: float):
 	img_buffer.seek(0)
 
 	#View
-	view = ButtonLinlk(approval_url, "Clique aqui!")
+	view = ButtonLink(approval_url, "Clique aqui!")
 	# Envia a imagem como um arquivo
 	await interaction.response.send_message(
 		f'Você está comprando R${amount} e sua ordem é `{order_id}`!',
@@ -264,7 +281,7 @@ async def payment(interaction: discord.Interaction, amount: float):
 @commands.cooldown(1, 120, commands.BucketType.user)
 @commands.has_permissions(administrator=True)
 async def clear_payments(interaction: discord.Interaction):
-	clear_payments_table()
+	MYSQL.clear_payments_table()
 
 	await interaction.response.send_message(
 		f'O banco de dados foi varrido com sucesso!', ephemeral=True
@@ -276,7 +293,7 @@ async def clear_payments(interaction: discord.Interaction):
 @commands.has_permissions(administrator=True)
 @app_commands.describe(order_id="Ordem do pagamento")
 async def verify_order(interaction: discord.Interaction, order_id: str):
-	payment_status = await check_payment_status(order_id)
+	payment_status = await PAYPAL.check_payment_status(order_id)
 
 	await interaction.response.send_message(
 		f'payment_status: {payment_status}', ephemeral=True
@@ -284,13 +301,13 @@ async def verify_order(interaction: discord.Interaction, order_id: str):
 
 @tasks.loop(seconds=20)
 async def check_payments(bot: discord.Client):
-	connection = get_mysql_connection()
-	pending_payments = get_pending_payments(connection)
+	connection = MYSQL.get_mysql_connection()
+	pending_payments = MYSQL.get_pending_payments(connection)
 
 	if pending_payments is None: return
 	if len(pending_payments) == 0: return
 
-	for payment in genList(pending_payments):
+	for payment in UTILS.genList(pending_payments):
 		payment_id, user_id, order_id, amount, status, timestamp = payment
 		print(payment_id, user_id, order_id, amount, status, timestamp)
 		
@@ -300,21 +317,21 @@ async def check_payments(bot: discord.Client):
 		diff_time = current_time - start_time
 		
 		if diff_time.days > 1: 
-			update_payment_status(user_id, order_id, 'OLD', connection)
-			delete_payment_by_order_id(order_id, connection)
+			MYSQL.update_payment_status(user_id, order_id, 'OLD', connection)
+			MYSQL.delete_payment_by_order_id(order_id, connection)
 			await asyncio.sleep(1)
 			continue
 
 		if status != "PENDING": continue
 		# Check if the payment was successful		
-		payment_successful = await is_payment_successful(order_id)
+		payment_successful = await PAYPAL.is_payment_successful(order_id)
 
 		print(f"Sucesso? {payment_successful}")
 		if payment_successful:
 			# Give the user their role and send a message in the specified channel
 			guild = bot.get_guild(int(MY_GUILD_DOLETA))
 
-			member = guild.get_member(int(extract_numbers(user_id))) or await bot.fetch_user(int(extract_numbers(user_id)))
+			member = guild.get_member(int(UTILS.extract_numbers(user_id))) or await bot.fetch_user(int(UTILS.extract_numbers(user_id)))
 			
 			channel = guild.get_channel(int(CHANNEL_SUPPORT))
 
@@ -336,9 +353,9 @@ async def check_payments(bot: discord.Client):
 			await channel.send(f'O pagamento de ordem: `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebido com sucesso! 🥳')
 
 			# Update the payment status in the database
-			delete_payment_by_order_id(order_id)
+			MYSQL.delete_payment_by_order_id(order_id)
 			try:
-				update_payment_status(user_id, order_id, 'COMPLETED', connection)
+				MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection)
 			except Exception as e:
 				print(e)
 		await asyncio.sleep(2)
@@ -394,7 +411,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 			await logwrite(error)
 
 	if isinstance(error, command[0]):
-		ccc=translator("on_error", str(contLan(guild_id, 1)))
+		ccc=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 1)))
 		await interaction.response.send_message(f'> *{ccc}* 😪'.format(author.id), ephemeral=True)
 
 client.run(DISCORD_DOLETA_TOKEN)
