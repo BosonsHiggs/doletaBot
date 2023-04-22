@@ -8,13 +8,7 @@ ClientError: é uma exceção definida na biblioteca aiohttp que é lançada qua
 https://gist.github.com/AbstractUmbra/a9c188797ae194e592efe05fa129c57f
 """
 
-import discord
-import os, qrcode, io, asyncio, math, pytz
-
-#from typing import Optional
-from discord.ext import commands, tasks
-from discord import app_commands
-from classes.utils import *
+from classes import *
 
 intents = discord.Intents.default()
 intents.typing = False
@@ -114,7 +108,8 @@ class MyClient(discord.Client):
 					commands.ArgumentParsingError,
 					commands.BadArgument, 
 					commands.BadUnionArgument,
-					commands.errors.HybridCommandError
+					commands.errors.HybridCommandError,
+					AttributeError
 				)
 			
 		for key in command:
@@ -135,6 +130,10 @@ class MyClient(discord.Client):
 			await ctx.send(f'> *{ccc}* 😪'.format(name))
 
 		if isinstance(error, command[5]):
+			ccc=translator("on_command_error", str(contLan(guild_id, 6)))
+			await ctx.send(f'> {ccc} 😪')
+
+		if isinstance(error, command[23]):
 			ccc=translator("on_command_error", str(contLan(guild_id, 6)))
 			await ctx.send(f'> {ccc} 😪')
 
@@ -221,15 +220,13 @@ async def payment(interaction: discord.Interaction, amount: float):
 	"""
 	Criar pagamento
 	"""
-	await interaction.response.defer()
 	guild = interaction.guild
 	order = await create_paypal_order(amount)
 	order_id = order["id"]
 
 	try:
-		connection = get_mysql_connection()
-		create_payments_table(connection)
-		save_payment(interaction.user.id, order_id, amount, connection)
+		create_payments_table()
+		save_payment(interaction.user.id, order_id, amount)
 	except Exception as e:
 		print(e)
 
@@ -238,7 +235,7 @@ async def payment(interaction: discord.Interaction, amount: float):
 	)
 
 	if approval_url is None:
-		await interaction.response.edit_message("Houve um erro ao processar a compra.")
+		await interaction.followup(content="Houve um erro ao processar a compra.")
 		return
 
 	content = f"O membro {interaction.user} (ID:`{interaction.user.id}`), comprou o produto de ordem `{order_id}` no valor de `R${amount}`! Caso o cliente tenha enfrentado algum erro envie o link abaixo para ele continuar comprando:\n{approval_url}"
@@ -285,7 +282,7 @@ async def verify_order(interaction: discord.Interaction, order_id: str):
 		f'payment_status: {payment_status}', ephemeral=True
 	)
 
-@tasks.loop(seconds=120)
+@tasks.loop(seconds=20)
 async def check_payments(bot: discord.Client):
 	connection = get_mysql_connection()
 	pending_payments = get_pending_payments(connection)
@@ -336,7 +333,7 @@ async def check_payments(bot: discord.Client):
 
 			await member.add_roles(role)
 
-			await channel.send(f'O pagamento do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebido com sucesso! 🥳')
+			await channel.send(f'O pagamento de ordem: `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebido com sucesso! 🥳')
 
 			# Update the payment status in the database
 			delete_payment_by_order_id(order_id)

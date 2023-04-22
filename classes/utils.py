@@ -1,11 +1,14 @@
-import os
-import pymysql
-import aiohttp
-import json
-import functools
-import discord
-import re
-from datetime import timedelta, datetime
+from . import (
+    discord, 
+    os, 
+    functools, 
+    aiohttp, 
+    datetime, 
+    timedelta, 
+    pymysql,
+    re,
+    json
+)
 
 class ButtonLinlk(discord.ui.View):
     def __init__(self, url: str, button_label: str):

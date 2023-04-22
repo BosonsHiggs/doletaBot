@@ -30,7 +30,9 @@
             "13":"Você não pode usar o comando **`{0}{1}`** por {2}!",
             "14":"You cannot use the **`{0}{1}`** command for {2}!",
             "15":"**{0}a**, **{1}d**, **{2}h**, **{3}min** e **{4}s**",
-            "16":"**{0}y**, **{1}d**, **{2}h**, **{3}min** and **{4}s**"
+            "16":"**{0}y**, **{1}d**, **{2}h**, **{3}min** and **{4}s**",
+            "17":"AttributeError! Você adicionou algum parâmetro incorreto!",
+            "18":"AttributeError! You have added some incorrect parameter!"
         }
     ],
     "on_application_command_error": [

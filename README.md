@@ -1,6 +1,6 @@
 # Discord Bot - Doleta Payments
 
-This is a simple Discord bot that uses the PayPal API to process payments and manage roles. It allows administrators to create payments, check payment status, and automatically update roles based on successful payments.
+This is a simple Discord bot that uses the PayPal API 2 to process payments and manage roles. It allows administrators to create payments, check payment status, and automatically update roles based on successful payments.
 
 # Features
 1. Create a PayPal order for a user.
