@@ -91,7 +91,7 @@ async def setup_commands(client):
 
     #command 4
     @client.tree.command()
-    @commands.cooldown(1, 120, commands.BucketType.user)
+    @app_commands.checks.cooldown(1, 60.0, key=lambda i: (i.guild_id, i.user.id))
     @commands.has_permissions(administrator=True)
     @app_commands.describe(order_id="Ordem do pagamento")
     async def verify_order(interaction: discord.Interaction, order_id: str):

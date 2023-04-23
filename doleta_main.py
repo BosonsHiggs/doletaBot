@@ -69,6 +69,7 @@ class MyClient(discord.Client):
 			pass
 
 	async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+		print(error)
 		if (ctx is None) or ctx.guild is None: return
 		if error is None: return
 
@@ -181,7 +182,7 @@ class MyClient(discord.Client):
 					try:
 						await ctx.defer(ephemeral=True)
 						retryAfter = [math.floor(math.ceil(error.original.retry_after) / 360), math.floor(error.original.retry_after / 60), error.original.retry_after % 86400]
-						year, days, hours, minutes, seconds = format_seconds_time(int(retryAfter[2]))
+						year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
 						ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
 						ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
 
@@ -320,7 +321,24 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 	command = (
 						app_commands.errors.MissingPermissions,
 						app_commands.errors.CommandInvokeError,
-						app_commands.errors.AppCommandError
+						app_commands.errors.AppCommandError,
+						app_commands.errors.AppCommandError,
+						app_commands.errors.CommandInvokeError,
+						app_commands.errors.TransformerError,
+						app_commands.errors.TranslationError,
+						app_commands.errors.CheckFailure,
+						app_commands.errors.CommandAlreadyRegistered,
+						app_commands.errors.CommandSignatureMismatch,
+						app_commands.errors.CommandNotFound,
+						app_commands.errors.CommandLimitReached,
+						app_commands.errors.NoPrivateMessage,
+						app_commands.errors.MissingRole,
+						app_commands.errors.MissingAnyRole,
+						app_commands.errors.MissingPermissions,
+						app_commands.errors.BotMissingPermissions,
+						app_commands.errors.CommandOnCooldown,
+						app_commands.errors.MissingApplicationID,
+						app_commands.errors.CommandSyncFailure,
 					)
 
 	#perm_bot = [command[1], command[4]]
@@ -330,6 +348,18 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 		if isinstance(error, key):
 			#await ctx.send(cont-1)
 			await logwrite(error)
+	
+	if isinstance(error, app_commands.CommandOnCooldown):
+		try:
+			retryAfter = [math.floor(math.ceil(error.retry_after) / 360), math.floor(error.retry_after / 60), error.retry_after % 86400]
+			year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
+			ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
+			ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
+
+			tempo = ccc2.format(year, days, hours, minutes, seconds)
+			await interaction.response.send_message(f'*{ccc1}* ⏰'.format("/", str(interaction.command.name), tempo))
+		except:
+			pass
 
 	if isinstance(error, command[0]):
 		ccc=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 1)))
