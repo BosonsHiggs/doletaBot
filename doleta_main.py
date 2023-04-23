@@ -56,141 +56,20 @@ class MyClient(discord.Client):
 
 	async def on_ready(self) -> None:
 		print(f'{self.user.name} has connected to Discord!')
-		try:
-			MYSQL.create_payments_table()
-		except Exception as e:
-			print(e)
-		try:
-			await check_payments.start(self)
-		except Exception as e:
-			print('f', e)
+		for guild in self.guilds:
+			try:
+				MYSQL.create_payments_table(table_name=guild.id)
+			except Exception as e:
+				print(e)
+
+			try:
+				await check_payments.start(self, guild.id)
+			except Exception as e:
+				print(e)
 
 	async def on_error(self, event_method: str, *args, **kwargs) -> None:
 			pass
-
-	async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
-		print(error)
-		if (ctx is None) or ctx.guild is None: return
-		if error is None: return
-
-		#await ctx.defer(ephemeral=False)
-		guild = ctx.guild
-		guild_id = guild.id
-		channel_error = ctx.channel
-		author = ctx.author
-
-		async def logwrite(error):
-			try:
-				bosons_guild = self.get_guild(MY_GUILD_DOLETA)
-				g = f'**⚠️ ERROR ALERT!**\n\n'
-				g += f'```\n'
-				g += f'Channel error {channel_error.name}: {error}\n'
-				g += f'Server ID: {guild.id} - {guild.name}\n'
-				g += f'Channel ID: {channel_error.id} - {channel_error.name}\n'
-				g += f'{author.name}#{author.discriminator} (ID: {author.id}): {ctx.message.content}\n'
-				g += f'```'
-				channel = bosons_guild.get_channel(int(CHANNEL_LOGS_DOLETA))
-
-				await channel.send(content=g)
-			except:
-				pass
-			
-			try:
-				with open('log.txt', 'a', encoding='utf-8') as log:
-					log.write('-'*50)
-					log.write(f'\nError on channel {channel_error.name}: {error}\n')
-					log.write(f'Server: {guild.id} - {guild.name}\n')
-					log.write(f'Channel ID: {channel_error.id} - {channel_error.name}\n')
-					log.write(f'{author.name}#{author.discriminator} (ID: {author.id}): "{ctx.message.content}"\n\n')
-			except:
-				pass
-
-		command = (
-					commands.MissingPermissions, 
-					commands.BotMissingPermissions, 
-					commands.BotMissingRole,
-					commands.MissingAnyRole,
-					commands.BotMissingAnyRole, 
-					commands.CommandInvokeError,
-					commands.ConversionError, 
-					commands.PrivateMessageOnly, 
-					commands.NoPrivateMessage, 
-					commands.CheckFailure, 
-					commands.CheckAnyFailure,
-					commands.RoleNotFound, 
-					commands.BadInviteArgument, 
-					commands.EmojiNotFound,
-					commands.BadBoolArgument, 
-					commands.MissingRole,
-					commands.CommandRegistrationError, 
-					commands.MessageNotFound, 
-					commands.MissingRequiredArgument, 
-					commands.ArgumentParsingError,
-					commands.BadArgument, 
-					commands.BadUnionArgument,
-					commands.errors.HybridCommandError,
-					AttributeError
-				)
-			
-		for key in command:
-			#cont+=1
-			if isinstance(error, key):
-				await logwrite(error)
-
-		if isinstance(error, command[0]):
-			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
-			await ctx.send(f'> *{ccc}* 😪')
-
-		if isinstance(error, command[1]):
-			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 3)))
-			await ctx.send(f'> *{ccc}* 😪')
-		elif isinstance(error, command[0]):
-			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 2)))
-			name = f'<@{author.id}>'
-			await ctx.send(f'> *{ccc}* 😪'.format(name))
-
-		if isinstance(error, command[5]):
-			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
-			await ctx.send(f'> {ccc} 😪')
-
-		if isinstance(error, command[23]):
-			ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 6)))
-			await ctx.send(f'> {ccc} 😪')
-
-		for key in range(19, 22):
-			if isinstance(error, command[key]):
-				ccc=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 5)))
-				await ctx.send(f'> {ccc} 😪')
-		
-		if isinstance(error, commands.CommandOnCooldown):
-			try:
-				await ctx.defer(ephemeral=True)
-				retryAfter = [math.floor(math.ceil(error.retry_after) / 360), math.floor(error.retry_after / 60), error.retry_after % 86400]
-				year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
-				ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
-				ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
-
-				tempo = ccc2.format(year, days, hours, minutes, seconds)
-				await ctx.send(f'*{ccc1}* ⏰'.format("/", str(ctx.command), tempo))
-			except:
-				pass
-			#print('Command "%s" is on a %.3f second cooldown' % (ctx.command, error.retry_after))
-
-		if hasattr(error, 'original'):
-			if hasattr(error.original, 'cooldown'):
-				if isinstance(error.original.cooldown, app_commands.checks.Cooldown):
-					try:
-						await ctx.defer(ephemeral=True)
-						retryAfter = [math.floor(math.ceil(error.original.retry_after) / 360), math.floor(error.original.retry_after / 60), error.original.retry_after % 86400]
-						year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
-						ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
-						ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
-
-						tempo = ccc2.format(year, days, hours, minutes, seconds)
-						await ctx.send(f'*{ccc1}* ⏰'.format("/", str(ctx.command), tempo))
-					except:
-						pass
-
+	
 intents = discord.Intents(
 			bans=True,
 			dm_messages =True,
@@ -222,9 +101,9 @@ client.UTILS = UTILS
 
 ##Tasks
 @tasks.loop(seconds=20)
-async def check_payments(bot: discord.Client):
+async def check_payments(bot: discord.Client, guild_id):
 	connection = MYSQL.get_mysql_connection()
-	pending_payments = MYSQL.get_pending_payments(connection)
+	pending_payments = MYSQL.get_pending_payments(connection, table_name=guild_id)
 
 	if pending_payments is None: return
 	if len(pending_payments) == 0: return
@@ -239,8 +118,8 @@ async def check_payments(bot: discord.Client):
 		diff_time = current_time - start_time
 		
 		if diff_time.days > 1: 
-			MYSQL.update_payment_status(user_id, order_id, 'OLD', connection)
-			MYSQL.delete_payment_by_order_id(order_id, connection)
+			MYSQL.update_payment_status(user_id, order_id, 'OLD', connection, table_name=guild_id)
+			MYSQL.delete_payment_by_order_id(order_id, connection, table_name=guild_id)
 			await asyncio.sleep(1)
 			continue
 
@@ -277,11 +156,12 @@ async def check_payments(bot: discord.Client):
 			# Update the payment status in the database
 			MYSQL.delete_payment_by_order_id(order_id)
 			try:
-				MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection)
+				MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection, table_name=guild_id)
 			except Exception as e:
 				print(e)
 		await asyncio.sleep(2)
-	
+
+
 @client.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
 	if (interaction is None) or interaction.guild is None: return
@@ -320,10 +200,12 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 	
 	command = (
 						app_commands.errors.MissingPermissions,
+						app_commands.errors.MissingRole,
+						app_commands.errors.MissingAnyRole,
+						app_commands.errors.BotMissingPermissions,
+						app_commands.errors.CommandOnCooldown,
 						app_commands.errors.CommandInvokeError,
 						app_commands.errors.AppCommandError,
-						app_commands.errors.AppCommandError,
-						app_commands.errors.CommandInvokeError,
 						app_commands.errors.TransformerError,
 						app_commands.errors.TranslationError,
 						app_commands.errors.CheckFailure,
@@ -332,18 +214,23 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 						app_commands.errors.CommandNotFound,
 						app_commands.errors.CommandLimitReached,
 						app_commands.errors.NoPrivateMessage,
-						app_commands.errors.MissingRole,
-						app_commands.errors.MissingAnyRole,
-						app_commands.errors.MissingPermissions,
-						app_commands.errors.BotMissingPermissions,
-						app_commands.errors.CommandOnCooldown,
 						app_commands.errors.MissingApplicationID,
-						app_commands.errors.CommandSyncFailure,
+						app_commands.errors.CommandSyncFailure
 					)
+
+	list_translations = (1, 6, 2, 7)
+	for index, cmd in enumerate(command):
+		if index > 3: break
+		if isinstance(error, cmd):
+			ccc=UTILS.translator("on_error", str(UTILS.contLan(guild_id, list_translations[index])))
+			await interaction.response.send_message(
+				f'> *{ccc}* 😪'.format(author.id), 
+				ephemeral=False
+			)
 
 	#perm_bot = [command[1], command[4]]
 	#cont=0
-	for key in command:
+	for key in UTILS.genList(command):
 		#cont+=1
 		if isinstance(error, key):
 			#await ctx.send(cont-1)
@@ -353,21 +240,25 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 		try:
 			retryAfter = [math.floor(math.ceil(error.retry_after) / 360), math.floor(error.retry_after / 60), error.retry_after % 86400]
 			year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
-			ccc1=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 7)))
-			ccc2=UTILS.translator("on_command_error", str(UTILS.contLan(guild_id, 8)))
+			ccc1=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 9)))
+			ccc2=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 10)))
 
 			tempo = ccc2.format(year, days, hours, minutes, seconds)
-			await interaction.response.send_message(f'*{ccc1}* ⏰'.format("/", str(interaction.command.name), tempo))
+			await interaction.response.send_message(
+				f'*{ccc1}* ⏰'.format("/", str(interaction.command.name), tempo),
+				ephemeral=True
+				)
 		except:
 			pass
 
-	if isinstance(error, command[0]):
-		ccc=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 1)))
-		await interaction.response.send_message(f'> *{ccc}* 😪'.format(author.id), ephemeral=True)
-
 async def main():
 	async with client:
+		#Commands
 		await setup_commands(client)
+		await HelpCenter(client)
+		#await CreatorCenter(client, MY_GUILD=MY_GUILD)
+
+		#Start client
 		await client.start(DISCORD_DOLETA_TOKEN)
 
 asyncio.run(main())

@@ -10,7 +10,17 @@
             "7":"Erro! Você usou um argumento com tipo errado! Verifique se não trocou letras por números, números por letras, etc!",
             "8":"Error! You used an argument with the wrong type! Make sure you haven't swapped letters for numbers, numbers for letters, etc!",
             "9":"**Sugestão 01**: Você ou o bot está sem permissões! Se o problema for com bot, por favor, deixe o mesmo acima dos outros cargos!...\n> **Sugestão 02**: Verifique também se o cargo ou membro existe!\n> **Sugestão 03**: acesse o nosso servidor https://discord.gg/GrDXnctrNM, pegue um cargo nos idiomas disponíveis (PT-BR, EN-US e ES-ES) e peça ajuda ao criador *Aril Ogai#5646*.\n**Nota**: de qualquer forma, revise os parâmetros que foram passados! Tenho convicção que você entrou com alguma coisa errada!",
-            "10":"**Suggestion 01**: You or the bot has no permissions! If the problem is with bot, please leave the same above the other roles!...\n> **Suggestion 02**: Also check if the role or member exists!\n> **Suggestion 03**: access our server https://discord.gg/GrDXnctrNM, get a role in the available languages (PT-BR, EN-US and ES-ES) and ask the creator *Aril Ogai#5646* for help.\n**Note**: anyway, review the parameters that were passed! I'm convinced you got something wrong!"
+            "10":"**Suggestion 01**: You or the bot has no permissions! If the problem is with bot, please leave the same above the other roles!...\n> **Suggestion 02**: Also check if the role or member exists!\n> **Suggestion 03**: access our server https://discord.gg/GrDXnctrNM, get a role in the available languages (PT-BR, EN-US and ES-ES) and ask the creator *Aril Ogai#5646* for help.\n**Note**: anyway, review the parameters that were passed! I'm convinced you got something wrong!",
+            "11":"Erro! Você não incformou um cargo válido!",
+            "12":"Error! You have not entered a valid load!",
+            "13":"Erro! Você não tem permissões para executar esse comando!",
+            "14":"Error! You don't have permissions to run this command!",
+            "15":"TransformerError! Aconteceu algum erro do lado cliente ou da Discord enquanto o comando estava sendo executado!",
+            "16":"TransformerError! Some client-side or Discord error happened while the command was being executed!",
+            "17":"Comando resfriado! Você não pode usar o comando **`{0}{1}`** por {2}!",
+            "18":"Cooldown Command! You cannot use the **`{0}{1}`** command for {2}!",
+            "19":"**{0}a**, **{1}d**, **{2}h**, **{3}min** e **{4}s**",
+            "20":"**{0}y**, **{1}d**, **{2}h**, **{3}min** and **{4}s**"
         }
     ],
     "on_command_error": [
@@ -49,6 +59,22 @@
         {
             "1":"O cargo `{0}` expirou para o usuário {1}!",
             "2":"The role `{0}` has expired for user {1}!"
+        }
+    ],
+    "help": [
+        {
+            "1":"/Help -> Ajuda do bot",
+            "2":"/Help -> Bot help",
+            "3":"/payment -> Criar pagamento",
+            "4":"/payment -> create payment",
+            "5":"/verify_order -> verificar se um pagamento foi recebido",
+            "6":"/verify_order -> verificar se um pagamento foi recebido",
+            "7":"/delete_all_table -> deletar a tabela de pagamentos",
+            "8":"/delete_all_table -> delete paytable",
+            "9":"/clear_payments -> limpar a tabela de pagamentos sem deletá-la",
+            "10":"/clear_payments -> clear paytable without deleting it",
+            "11":"/set_language -> definir o idioma do bot",
+            "12":"/set_language -> set bot language"
         }
     ]
 }

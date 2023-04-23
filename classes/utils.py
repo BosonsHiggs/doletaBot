@@ -7,8 +7,76 @@ from . import (
 	pymysql,
 	re,
 	json, 
-	uuid
+	uuid,
+	random
 )
+
+##Don't import this
+class MenuUtilities():
+	def __init__(self, current_embed:discord.Embed=None, embed_compare:discord.Embed=None):
+		self.current_embed = current_embed
+		self.embed_compare = embed_compare
+
+	def indexList(self, myList):
+		for n in range(len(myList)):
+			yield n
+
+	def simplifyEmbed(self, embed1, embed2):
+		embed1 = embed1.description.replace(' ', '').replace('\n', '')
+		embed2 = embed2.description.replace(' ', '').replace('\n', '')
+
+		return embed1, embed2
+
+	##avançar uma vez
+	def forwardEmbed(self):
+		for index in self.indexList(self.embed_compare):
+			embed1, embed2 = self.simplifyEmbed(self.current_embed, self.embed_compare[index])
+			if embed1 != embed2: continue
+			elif embed1 == embed2 and index < len(self.embed_compare)-1: return index + 1
+			elif embed1 == embed2 and index >= len(self.embed_compare)-1: return index
+
+	##Voltar uma vez
+	def backwardEmbed(self):
+		for index in self.indexList(self.embed_compare):
+			embed1, embed2 = self.simplifyEmbed(self.current_embed, self.embed_compare[index])
+			if embed1 != embed2: continue
+			elif embed1 == embed2 and index > 0: return index - 1
+			elif embed1 == embed2 and index <= 0: return index
+
+class MenuButton(discord.ui.View):
+	"""
+	⏮️ -> track_previous
+	◀️ -> arrow_backward
+	▶️ -> arrow_forward
+	⏭️ -> track_next 
+	⏹️ -> stop_button
+	"""
+	def __init__(self, embeds:tuple=None, *args):
+		super().__init__(timeout=None)
+		self.embeds = embeds
+		self.args = args
+	
+	@discord.ui.button(emoji='⏮️', style=discord.ButtonStyle.green, custom_id="persistent_view:track_previous")
+	async def track_previous(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.response.edit_message(content=None, embed=self.embeds[0])
+	
+	@discord.ui.button(emoji='◀️', style=discord.ButtonStyle.green, custom_id="persistent_view:arrow_backward")
+	async def arrow_backward(self, interaction: discord.Interaction, button: discord.ui.Button):
+		index = MenuUtilities(interaction.message.embeds[0], self.embeds).backwardEmbed()
+		await interaction.response.edit_message(content=None, embed=self.embeds[index])
+
+	@discord.ui.button(emoji='▶️', style=discord.ButtonStyle.green, custom_id="persistent_view:arrow_forward")
+	async def arrow_forward(self, interaction: discord.Interaction, button: discord.ui.Button):
+		index = MenuUtilities(interaction.message.embeds[0], self.embeds).forwardEmbed()
+		await interaction.response.edit_message(content=None, embed=self.embeds[index])
+
+	@discord.ui.button(emoji='⏭️', style=discord.ButtonStyle.green, custom_id="persistent_view:track_next")
+	async def track_next(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.response.edit_message(content=None, embed=self.embeds[len(self.embeds)-1])
+
+	@discord.ui.button(emoji='⏹️', style=discord.ButtonStyle.red, custom_id="persistent_view:stop_button")
+	async def stop_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+		await interaction.message.delete()
 
 class ButtonLink(discord.ui.View):
 	def __init__(self, url: str, button_label: str):
@@ -23,6 +91,16 @@ class ButtonLink(discord.ui.View):
 DECORATORS
 """
 class Decorators:
+	def is_bot_owner(self, func):
+		@functools.wraps(func)
+		async def wrapper(*args, **kwargs):
+			interaction = args[0] if isinstance(args[0], discord.Interaction) else args[1]
+			if interaction.user.id != interaction.guild.owner_id:
+				await interaction.response.send_message("Somente o dono do bot pode executar este comando.")
+				return False
+			return await func(*args, **kwargs)
+		return wrapper
+
 	def handle_aiohttp_errors(self, func):
 		@functools.wraps(func)
 		async def wrapper(*args, **kwargs):
@@ -37,9 +115,7 @@ class Decorators:
 				return None
 		return wrapper
 
-"""
-FUNCTIONS
-"""
+
 """
 PAYPAL
 """
@@ -246,11 +322,68 @@ class MySQL:
 							password=self.MYSQL_PASSWORD,
 							database=self.MYSQL_DATABASE)
 
-	def save_payment(self, user_id, order_id, amount, connection=None):
+	# Create languages table
+	def create_languages_table(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'languages'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "INSERT INTO payments (user_id, order_id, amount) VALUES (%s, %s, %s)"
+				cursor.execute(f"SHOW TABLES LIKE '{table_name}'")
+				result = cursor.fetchone()
+				if result:
+					pass
+				else:
+					sql = f"""CREATE TABLE `{table_name}` (
+								id INT(11) NOT NULL AUTO_INCREMENT,
+								guild_id VARCHAR(255) NOT NULL,
+								language VARCHAR(255) NOT NULL,
+								PRIMARY KEY (id)
+							)"""
+					cursor.execute(sql)
+					connection.commit()
+		finally:
+			connection.close()
+
+	def save_language(self, guild_id, language, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'languages'
+		connection = self.get_mysql_connection() if connection is None else connection
+		try:
+			with connection.cursor() as cursor:
+				# First, try to update the existing language
+				sql = f"UPDATE `{table_name}` SET language = %s WHERE guild_id = %s"
+				cursor.execute(sql, (language, guild_id))
+				connection.commit()
+				# If no row was affected, insert a new row
+				if cursor.rowcount == 0:
+					sql = f"INSERT INTO `{table_name}` (guild_id, language) VALUES (%s, %s)"
+					cursor.execute(sql, (guild_id, language))
+					connection.commit()
+		finally:
+			connection.close()
+	
+	def get_language(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'languages'
+		guild_id = kwargs.get("guild_id")
+		connection = self.get_mysql_connection() if connection is None else connection
+		language = None
+
+		try:
+			with connection.cursor() as cursor:
+				sql = f"SELECT language FROM `{table_name}` WHERE guild_id = %s"
+				cursor.execute(sql, (guild_id,))
+				result = cursor.fetchone()
+				if result:
+					language = result[0]
+		finally:
+			connection.close()
+		return language
+
+	def save_payment(self, user_id, order_id, amount, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
+		connection = self.get_mysql_connection() if connection is None else connection
+		try:
+			with connection.cursor() as cursor:
+				sql = f"INSERT INTO `{table_name}` (user_id, order_id, amount) VALUES (%s, %s, %s)"
 				cursor.execute(sql, (user_id, order_id, amount))
 				connection.commit()
 		except Exception as e:
@@ -259,12 +392,13 @@ class MySQL:
 			connection.close()
 
 
-	def get_pending_payments(self, connection=None):
+	def get_pending_payments(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		pending_payments = []
 		try:
 			with connection.cursor() as cursor:
-				sql = "SELECT * FROM payments WHERE status = 'PENDING'"
+				sql = f"SELECT * FROM `{table_name}` WHERE status = 'PENDING'"
 				cursor.execute(sql)
 				pending_payments = cursor.fetchall()
 		except Exception as e:
@@ -274,29 +408,31 @@ class MySQL:
 		return pending_payments
 
 
-	def update_payment_status(self, user_id, order_id, status, connection=None):
+	def update_payment_status(self, user_id, order_id, status, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "UPDATE payments SET status = %s WHERE user_id = %s AND order_id = %s"
+				sql = f"UPDATE `{table_name}` SET status = %s WHERE user_id = %s AND order_id = %s"
 				cursor.execute(sql, (status, user_id, order_id))
 				connection.commit()
 		finally:
 			connection.close()
 
 	#Create payments table
-	def create_payments_table(self, connection=None):
+	def create_payments_table(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
 				# Verifica se a tabela já existe
-				cursor.execute("SHOW TABLES LIKE 'payments'")
+				cursor.execute(f"SHOW TABLES LIKE '`{table_name}`'")
 				result = cursor.fetchone()
 				if result:
 					pass
 				else:
 					# Cria a tabela
-					sql = """CREATE TABLE payments (
+					sql = f"""CREATE TABLE `{table_name}` (
 								id INT(11) NOT NULL AUTO_INCREMENT,
 								user_id VARCHAR(255) NOT NULL,
 								order_id VARCHAR(255) NOT NULL,
@@ -305,50 +441,55 @@ class MySQL:
 								created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 								PRIMARY KEY (id)
 							)"""
+
 					cursor.execute(sql)
 					connection.commit()
 		finally:
 			connection.close()
 
 	#delete the table
-	def delete_payments_table(self, connection=None):
+	def delete_payments_table(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "DROP TABLE IF EXISTS payments"
+				sql = f"DROP TABLE IF EXISTS `{table_name}`"
 				cursor.execute(sql)
 				connection.commit()
 		finally:
 			connection.close()
 
 	#delete by user_id
-	def delete_payment_by_user_id(self, user_id, connection=None):
+	def delete_payment_by_user_id(self, user_id, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "DELETE FROM payments WHERE user_id = %s"
+				sql = f"DELETE FROM `{table_name}` WHERE user_id = %s"
 				cursor.execute(sql, (user_id,))
 				connection.commit()
 		finally:
 			connection.close()
 
 	#Delete by order_id
-	def delete_payment_by_order_id(self, order_id, connection=None):
+	def delete_payment_by_order_id(self, order_id, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "DELETE FROM payments WHERE order_id = %s"
+				sql = f"DELETE FROM `{table_name}` WHERE order_id = %s"
 				cursor.execute(sql, (order_id,))
 				connection.commit()
 		finally:
 			connection.close()
 
 	#Clear all table
-	def clear_payments_table(self, connection=None):
+	def clear_payments_table(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name") or 'payments'
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				sql = "TRUNCATE TABLE payments"
+				sql = f"TRUNCATE TABLE `{table_name}`"
 				cursor.execute(sql)
 				connection.commit()
 		finally:
@@ -358,6 +499,17 @@ class MySQL:
 OTHER FUNCTIONS
 """
 class Utils:
+	def __init__(self, client: discord.Client = None) -> None:
+		self.client = client
+
+	def random_discord_color(self):
+		return discord.Colour(random.randint(0, 0xFFFFFF))
+	
+	def extract_startwith(self, text:str) -> str:
+		parts = text.split(' -> ')
+		if parts[0].startswith('/'):
+			return parts[0]
+			
 	def extract_numbers(self, text):
 		return re.sub('[^0-9]', '', text)
 
@@ -373,6 +525,9 @@ class Utils:
 		return all_jsons
 
 	def contLan(self, id, num, language:str=None):
+		table_name = 'lan' + str(id)
+		language = self.client.MYSQL.get_language(guild_id=id, table_name=table_name)
+
 		if language is None: 
 			language = "pt-br"
 
