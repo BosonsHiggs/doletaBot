@@ -25,10 +25,10 @@ async def setup_commands(client, **kwargs):
 		order_id = order["id"]
 
 		try:
-			client.MYSQL.create_payments_table()
-			client.MYSQL.save_payment(interaction.user.id, order_id, amount)
-		except Exception as e:
-			print(e)
+			client.MYSQL.create_payments_table(table_name=str(guild.id))
+			client.MYSQL.save_payment(interaction.user.id, order_id, amount, table_name=str(guild.id))
+		except:
+			pass
 
 		approval_url = next(
 			(link["href"] for link in order["links"] if link["rel"] == "approve"), None
@@ -96,7 +96,7 @@ async def setup_commands(client, **kwargs):
 		Deletar a tabela de pagamentos!
 		"""
 		guild_id = interaction.guild_id
-		client.MYSQL.delete_payments_table(table_name=guild_id)
+		client.MYSQL.delete_payments_table(table_name=str(guild_id))
 
 		await interaction.response.send_message(
 			f'A tabela {guild_id} foi deletada com sucesso!', ephemeral=True
@@ -109,7 +109,7 @@ async def setup_commands(client, **kwargs):
 	async def clear_payments(interaction: discord.Interaction):
 		"""Limpar a tabela de pagamentos pendentes"""
 		guild_id = interaction.guild_id
-		client.MYSQL.clear_payments_table(table_name=guild_id)
+		client.MYSQL.clear_payments_table(table_name=str(guild_id))
 
 		await interaction.followup.send(
 			content=f'O tabela {guild_id} foi resetada com sucesso!', 

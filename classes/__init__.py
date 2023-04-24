@@ -19,6 +19,8 @@ from datetime import timedelta, datetime
 #from typing import Optional
 from discord.ext import commands, tasks
 from discord import app_commands
+from discord.utils import MISSING
+
 from classes.utils import (
     MenuButton,
     ButtonLink,
@@ -27,6 +29,7 @@ from classes.utils import (
     MySQL,
     Utils
 )
+from classes.newtasks import CheckPaymentsTask
 from functools import partial
 from classes.all_commands import setup_commands
 from classes.helpCommands import HelpCenter
@@ -37,6 +40,8 @@ MYSQL_CREDENTIALS = ("localhost", os.getenv("MYSQL_USER"), os.getenv("MYQSL_PASS
 DISCORD_CREDENTIALS = (os.getenv('DISCORD_DOLETA_TOKEN'), os.getenv("CHANNEL_DOLETA_SUPPORT"), os.getenv("MY_GUILD_DOLETA"), "DOLETA USER", os.getenv("CHANNEL_LOGS_DOLETA"), os.getenv("DOLETA_APPLICATION_ID"))
 
 __all__ = [
+    'MISSING',
+    'CheckPaymentsTask',
     'CreatorCenter',
     'Decorators',
     'HelpCenter',

@@ -50,25 +50,30 @@ class MyClient(discord.Client):
 	async def setup_hook(self):
 		#await self.load_extension("classes.commands")
 		# This copies the global commands over to your guild.
+
 		self.tree.copy_global_to(guild=MY_GUILD)
 		await self.tree.sync(guild=MY_GUILD)
 
 
 	async def on_ready(self) -> None:
-		print(f'{self.user.name} has connected to Discord!')
 		for guild in self.guilds:
 			try:
-				MYSQL.create_payments_table(table_name=guild.id)
+				MYSQL.create_payments_table(table_name=str(guild.id))
 			except Exception as e:
 				print(e)
+				pass
 
 			try:
-				await check_payments.start(self, guild.id)
+				check_payments_task = CheckPaymentsTask(self, str(guild.id))
+				check_payments_task.start()
 			except Exception as e:
 				print(e)
+				pass
+		
+		print(f'{self.user.name} has connected to Discord!')
 
-	async def on_error(self, event_method: str, *args, **kwargs) -> None:
-			pass
+	"""async def on_error(self, event_method: str, *args, **kwargs) -> None:
+			pass"""
 	
 intents = discord.Intents(
 			bans=True,
@@ -98,69 +103,15 @@ client = MyClient(intents=intents)
 client.MYSQL = MYSQL
 client.PAYPAL = PAYPAL
 client.UTILS = UTILS
+client.member_timezone = member_timezone
 
-##Tasks
-@tasks.loop(seconds=20)
-async def check_payments(bot: discord.Client, guild_id):
-	connection = MYSQL.get_mysql_connection()
-	pending_payments = MYSQL.get_pending_payments(connection, table_name=guild_id)
+client.CHANNEL_SUPPORT = DISCORD_CREDENTIALS[1]
+client.MY_GUILD_DOLETA = DISCORD_CREDENTIALS[2]
+client.ROLE_NAME = DISCORD_CREDENTIALS[3]
+client.CHANNEL_LOGS_DOLETA = DISCORD_CREDENTIALS[4]
 
-	if pending_payments is None: return
-	if len(pending_payments) == 0: return
-
-	for payment in UTILS.genList(pending_payments):
-		payment_id, user_id, order_id, amount, status, timestamp = payment
-		print(payment_id, user_id, order_id, amount, status, timestamp)
-		
-		#Check if it's within 1 day
-		start_time = timestamp.astimezone(member_timezone)
-		current_time = discord.utils.utcnow().astimezone(member_timezone)
-		diff_time = current_time - start_time
-		
-		if diff_time.days > 1: 
-			MYSQL.update_payment_status(user_id, order_id, 'OLD', connection, table_name=guild_id)
-			MYSQL.delete_payment_by_order_id(order_id, connection, table_name=guild_id)
-			await asyncio.sleep(1)
-			continue
-
-		if status != "PENDING": continue
-		# Check if the payment was successful		
-		payment_successful = await PAYPAL.is_payment_successful(order_id)
-
-		print(f"Sucesso? {payment_successful}")
-		if payment_successful:
-			# Give the user their role and send a message in the specified channel
-			guild = bot.get_guild(int(MY_GUILD_DOLETA))
-
-			member = guild.get_member(int(UTILS.extract_numbers(user_id))) or await bot.fetch_user(int(UTILS.extract_numbers(user_id)))
-			
-			channel = guild.get_channel(int(CHANNEL_SUPPORT))
-
-			bot_member = guild.get_member(client.user.id)
-			bot_role = bot_member.top_role
-
-			if bot_role.position == 0:
-				await channel.send("O bot não possui permissões para criar ou modificar cargos.")
-				return
-			
-			# Verificar se o cargo já existe
-			role = discord.utils.get(guild.roles, name=ROLE_NAME)
-			if not role:
-				role = await guild.create_role(name=ROLE_NAME)
-			await role.edit(position=bot_role.position - 1)
-
-			await member.add_roles(role)
-
-			await channel.send(f'O pagamento de ordem: `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebido com sucesso! 🥳')
-
-			# Update the payment status in the database
-			MYSQL.delete_payment_by_order_id(order_id)
-			try:
-				MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection, table_name=guild_id)
-			except Exception as e:
-				print(e)
-		await asyncio.sleep(2)
-
+#Add bot owner IDs
+client.owners = [690999812480303175, 1050954155503656960] 
 
 @client.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError) -> None:
@@ -222,7 +173,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 	for index, cmd in enumerate(command):
 		if index > 3: break
 		if isinstance(error, cmd):
-			ccc=UTILS.translator("on_error", str(UTILS.contLan(guild_id, list_translations[index])))
+			ccc=Utils().translator("on_error", str(Utils(client).contLan(guild_id, list_translations[index])))
 			await interaction.response.send_message(
 				f'> *{ccc}* 😪'.format(author.id), 
 				ephemeral=False
@@ -230,7 +181,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 
 	#perm_bot = [command[1], command[4]]
 	#cont=0
-	for key in UTILS.genList(command):
+	for key in Utils().genList(command):
 		#cont+=1
 		if isinstance(error, key):
 			#await ctx.send(cont-1)
@@ -239,17 +190,17 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 	if isinstance(error, app_commands.CommandOnCooldown):
 		try:
 			retryAfter = [math.floor(math.ceil(error.retry_after) / 360), math.floor(error.retry_after / 60), error.retry_after % 86400]
-			year, days, hours, minutes, seconds = UTILS.format_seconds_time(int(retryAfter[2]))
-			ccc1=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 9)))
-			ccc2=UTILS.translator("on_error", str(UTILS.contLan(guild_id, 10)))
+			year, days, hours, minutes, seconds = Utils().format_seconds_time(int(retryAfter[2]))
+			ccc1=Utils().translator("on_error", str(Utils(client).contLan(guild_id, 9)))
+			ccc2=Utils().translator("on_error", str(Utils(client).contLan(guild_id, 10)))
 
 			tempo = ccc2.format(year, days, hours, minutes, seconds)
 			await interaction.response.send_message(
 				f'*{ccc1}* ⏰'.format("/", str(interaction.command.name), tempo),
 				ephemeral=True
 				)
-		except:
-			pass
+		except Exception as e:
+			print(e)
 
 async def main():
 	async with client:
@@ -257,7 +208,7 @@ async def main():
 		await setup_commands(client)
 		await HelpCenter(client)
 		#await CreatorCenter(client, MY_GUILD=MY_GUILD)
-
+		
 		#Start client
 		await client.start(DISCORD_DOLETA_TOKEN)
 

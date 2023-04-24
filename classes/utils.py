@@ -91,11 +91,12 @@ class ButtonLink(discord.ui.View):
 DECORATORS
 """
 class Decorators:
+	#
 	def is_bot_owner(self, func):
 		@functools.wraps(func)
 		async def wrapper(*args, **kwargs):
 			interaction = args[0] if isinstance(args[0], discord.Interaction) else args[1]
-			if interaction.user.id != interaction.guild.owner_id:
+			if interaction.user.id not in interaction.client.owners:
 				await interaction.response.send_message("Somente o dono do bot pode executar este comando.")
 				return False
 			return await func(*args, **kwargs)
@@ -349,11 +350,9 @@ class MySQL:
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:
-				# First, try to update the existing language
 				sql = f"UPDATE `{table_name}` SET language = %s WHERE guild_id = %s"
 				cursor.execute(sql, (language, guild_id))
 				connection.commit()
-				# If no row was affected, insert a new row
 				if cursor.rowcount == 0:
 					sql = f"INSERT INTO `{table_name}` (guild_id, language) VALUES (%s, %s)"
 					cursor.execute(sql, (guild_id, language))
@@ -418,7 +417,17 @@ class MySQL:
 				connection.commit()
 		finally:
 			connection.close()
-
+	
+	def get_table_contents(self, table_name, connection=None):
+		connection = self.get_mysql_connection() if connection is None else connection
+		try:
+			with connection.cursor() as cursor:
+				cursor.execute(f"SELECT * FROM `{table_name}`")
+				contents = cursor.fetchall()
+		finally:
+			connection.close()
+		return contents
+	
 	#Create payments table
 	def create_payments_table(self, connection=None, **kwargs):
 		table_name = kwargs.get("table_name") or 'payments'
@@ -526,8 +535,7 @@ class Utils:
 
 	def contLan(self, id, num, language:str=None):
 		table_name = 'lan' + str(id)
-		language = self.client.MYSQL.get_language(guild_id=id, table_name=table_name)
-
+		language = self.client.MYSQL.get_language(guild_id=str(id), table_name=table_name)
 		if language is None: 
 			language = "pt-br"
 
