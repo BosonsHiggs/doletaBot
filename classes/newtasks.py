@@ -1,32 +1,29 @@
 from . import (
 	discord,
     MISSING,
-    asyncio
+    asyncio,
+    tasks
 )
 
-class CheckPaymentsTask(discord.ext.tasks.Loop):
-    def __init__(self, bot: discord.Client, guild_id, *args, **kwargs):
-        self.client = bot
+class CheckPaymentsTask(tasks.Loop):
+    def __init__(self, client: discord.Client, guild_id, *args, **kwargs):
+        self.client = client
         self.guild_id = guild_id
+        self.kwargs = kwargs
+        self.table_name = f"{guild_id}" or 'payments'
 
         super().__init__(self.check_payments, seconds=20, hours=0, minutes=0, time=MISSING, count=None, reconnect=True)
 
 
     async def check_payments(self):
-        connection = self.client.MYSQL.get_mysql_connection()
-        pending_payments = self.client.MYSQL.get_pending_payments(connection, table_name=str(self.guild_id))
+        connection = self.client.MYSQL.get_mysql_connection() if self.kwargs.get("connection") is None else self.kwargs.get("connection")
+        pending_payments = self.client.MYSQL.get_pending_payments(connection, table_name= self.table_name)
 
-        if pending_payments is None: return
         if len(pending_payments) == 0: return
 
-        try:
-            print(self.client.UTILS().genList(pending_payments))
-        except Exception as e:
-            print(e)
-
-        for payment in self.client.UTILS.genList(pending_payments):
+        for payment in pending_payments:
             payment_id, user_id, order_id, amount, status, timestamp = payment
-            print(payment_id, user_id, order_id, amount, status, timestamp)
+            #print(payment_id, user_id, order_id, amount, status, timestamp)
             
             #Check if it's within 1 day
             start_time = timestamp.astimezone(self.client.member_timezone)
@@ -35,7 +32,7 @@ class CheckPaymentsTask(discord.ext.tasks.Loop):
             
             if diff_time.days > 1: 
                 #MYSQL.update_payment_status(user_id, order_id, 'OLD', connection, table_name=str(guild_id))
-                self.client.MYSQL.delete_payment_by_order_id(order_id, connection, table_name=str(self.guild_id))
+                self.client.MYSQL.delete_payment_by_order_id(order_id, connection, table_name=self.table_name)
                 await asyncio.sleep(1)
                 continue
 
@@ -66,12 +63,12 @@ class CheckPaymentsTask(discord.ext.tasks.Loop):
 
                 await member.add_roles(role)
 
-                await channel.send(f'O pagamento de ordem: `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebido com sucesso! 🥳')
+                await channel.send(f'O pagamento de ordem `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebida com sucesso! 🥳')
 
                 # Update the payment status in the database
-                self.client.MYSQL.delete_payment_by_order_id(order_id, table_name=str(self.guild_id))
+                self.client.MYSQL.delete_payment_by_order_id(order_id, connection, table_name=self.table_name)
                 try:
-                    self.client.MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection, table_name=str(self.guild_id))
+                    self.client.MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection, table_name=self.table_name)
                 except:
                     pass
             await asyncio.sleep(2)

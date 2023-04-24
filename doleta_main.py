@@ -57,17 +57,18 @@ class MyClient(discord.Client):
 
 	async def on_ready(self) -> None:
 		for guild in self.guilds:
+			#connection = self.MYSQL.get_mysql_connection()
+			table_name = str(guild.id)
+
 			try:
-				MYSQL.create_payments_table(table_name=str(guild.id))
-			except Exception as e:
-				print(e)
+				self.client.MYSQL.create_payments_table(table_name=table_name)
+			except:
 				pass
 
 			try:
 				check_payments_task = CheckPaymentsTask(self, str(guild.id))
 				check_payments_task.start()
-			except Exception as e:
-				print(e)
+			except:
 				pass
 		
 		print(f'{self.user.name} has connected to Discord!')

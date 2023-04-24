@@ -26,6 +26,10 @@ async def setup_commands(client, **kwargs):
 
 		try:
 			client.MYSQL.create_payments_table(table_name=str(guild.id))
+		except:
+			pass
+		
+		try:
 			client.MYSQL.save_payment(interaction.user.id, order_id, amount, table_name=str(guild.id))
 		except:
 			pass

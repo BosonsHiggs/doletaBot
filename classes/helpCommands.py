@@ -32,7 +32,7 @@ async def HelpCenter(client, **kwargs):
 		for cont2, comando in enumerate(help_t):
 			cont+=1
 			
-			g += f'**`{cont2+1}.`** {Utils().extract_startwith(comando)}\n```{comando.split(" -> ")[1]}```\n'
+			g += f'**`{cont2+1}.`** **{Utils().extract_startwith(comando)}**\n```{comando.split(" -> ")[1]}```\n'
 
 			if cont < 6:
 				embed = discord.Embed(colour=Utils().random_discord_color(), description=g)

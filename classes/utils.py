@@ -385,8 +385,6 @@ class MySQL:
 				sql = f"INSERT INTO `{table_name}` (user_id, order_id, amount) VALUES (%s, %s, %s)"
 				cursor.execute(sql, (user_id, order_id, amount))
 				connection.commit()
-		except Exception as e:
-			print(f"Error in save_payment: {e}")  # Log added
 		finally:
 			connection.close()
 
@@ -400,8 +398,8 @@ class MySQL:
 				sql = f"SELECT * FROM `{table_name}` WHERE status = 'PENDING'"
 				cursor.execute(sql)
 				pending_payments = cursor.fetchall()
-		except Exception as e:
-			print(f"Error in get_pending_payments: {e}")  # Log added
+		except:
+			pending_payments = []
 		finally:
 			connection.close()
 		return pending_payments
