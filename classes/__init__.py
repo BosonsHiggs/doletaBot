@@ -33,7 +33,7 @@ from classes.newtasks import CheckPaymentsTask
 from functools import partial
 from classes.all_commands import setup_commands
 from classes.helpCommands import HelpCenter
-from classes.creatorCommands import CreatorCenter
+from classes.creatorCommands import CreatorCommands
 
 PAYPAL_CREDENTIALS = (os.getenv("PAYPAL_GENERALBOT_ID"), os.getenv("PAYPAL_GENERALBOT_SECRET"))
 MYSQL_CREDENTIALS = ("localhost", os.getenv("MYSQL_USER"), os.getenv("MYQSL_PASSWORD"), os.getenv("MYSQL_DATABASE_NAME"))
@@ -42,7 +42,7 @@ DISCORD_CREDENTIALS = (os.getenv('DISCORD_DOLETA_TOKEN'), os.getenv("CHANNEL_DOL
 __all__ = [
     'MISSING',
     'CheckPaymentsTask',
-    'CreatorCenter',
+    'CreatorCommands',
     'Decorators',
     'HelpCenter',
     'setup_commands',

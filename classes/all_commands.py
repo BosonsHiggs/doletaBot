@@ -7,7 +7,8 @@ from . import (
 	ButtonLink,
 	io,
 	Decorators,
-	typing
+	typing,
+	Utils
 )
 
 async def setup_commands(client, **kwargs):
@@ -19,7 +20,7 @@ async def setup_commands(client, **kwargs):
 	async def payment(interaction: discord.Interaction, amount: float):
 		"""Cria um pagamento"""
 
-		await interaction.response.defer()
+		await interaction.response.defer(ephemeral=True, thinking=True)
 		guild = interaction.guild
 		order = await client.PAYPAL.create_paypal_order(amount)
 		order_id = order["id"]
@@ -28,7 +29,7 @@ async def setup_commands(client, **kwargs):
 			client.MYSQL.create_payments_table(table_name=str(guild.id))
 		except:
 			pass
-		
+
 		try:
 			client.MYSQL.save_payment(interaction.user.id, order_id, amount, table_name=str(guild.id))
 		except:
@@ -39,10 +40,12 @@ async def setup_commands(client, **kwargs):
 		)
 
 		if approval_url is None:
-			await interaction.followup.send(content="Houve um erro ao processar a compra.")
+			ccc=Utils().translator("payment", str(Utils(client).contLan(guild.id, 1)))
+			await interaction.followup.send(content=f"{ccc}")
 			return
 
-		content = f"O membro {interaction.user} (ID:`{interaction.user.id}`), comprou o produto de ordem `{order_id}` no valor de `R${amount}`! Caso o cliente tenha enfrentado algum erro envie o link abaixo para ele continuar comprando:\n{approval_url}"
+		ccc=Utils().translator("payment", str(Utils(client).contLan(guild.id, 2)))
+		content = f"{ccc}".format(interaction.user, interaction.user.id, order_id, amount, approval_url)
 		
 		from . import DISCORD_CREDENTIALS
 
@@ -64,11 +67,11 @@ async def setup_commands(client, **kwargs):
 		view = ButtonLink(approval_url, "Clique aqui!")
 		
 		# Envia a imagem como um arquivo
+		ccc=Utils().translator("payment", str(Utils(client).contLan(guild.id, 3)))
 		await interaction.followup.send(
-			content=f'Você está comprando R${amount} e sua ordem é `{order_id}`!',
+			content=f'{ccc}'.format(amount, order_id),
 			file=file,
-			view=view, 
-			ephemeral=True
+			view=view
 		)
 
 	# command 2
@@ -78,17 +81,19 @@ async def setup_commands(client, **kwargs):
 	@app_commands.describe(order_id="Ordem do pagamento")
 	async def verify_order(interaction: discord.Interaction, order_id: str):
 		"""Verificar o estado de uma transação usando a ordem de pagamento"""
+		await interaction.response.defer(ephemeral=True, thinking=True)
+		guild_id = interaction.guild_id
 		payment_status = await client.PAYPAL.check_payment_status(order_id)
 
 		if payment_status:
-			await interaction.response.send_message(
-				f'O pagamento de ordem `{order_id}` já foi recebido! ✅', 
-				ephemeral=False
+			ccc=Utils().translator("payment", str(Utils(client).contLan(guild_id, 1)))
+			await interaction.followup.send(
+				content=f'{ccc} ✅'.format(order_id)
 			)
 		else:
-			await interaction.response.send_message(
-				f'O pagamento de ordem `{order_id}` ainda não foi pago! ❌', 
-				ephemeral=False
+			ccc=Utils().translator("payment", str(Utils(client).contLan(guild_id, 2)))
+			await interaction.followup.send(
+				content=f'{ccc} ❌'.format(order_id)
 			)
 
 	# command 3
@@ -96,14 +101,14 @@ async def setup_commands(client, **kwargs):
 	@app_commands.checks.cooldown(1, 10*60.0, key=lambda i: (i.guild_id, i.user.id))
 	@app_commands.checks.has_permissions(administrator=True)
 	async def delete_all_table(interaction: discord.Interaction):
-		"""
-		Deletar a tabela de pagamentos!
-		"""
+		"""Deletar a tabela de pagamentos!"""
+		await interaction.response.defer(ephemeral=True, thinking=True)
 		guild_id = interaction.guild_id
 		client.MYSQL.delete_payments_table(table_name=str(guild_id))
 
-		await interaction.response.send_message(
-			f'A tabela {guild_id} foi deletada com sucesso!', ephemeral=True
+		ccc=Utils().translator("delete_all_table", str(Utils(client).contLan(guild_id, 1)))
+		await interaction.followup.send(
+				content=f'{ccc}'.format(guild_id)
 		)
 
 	# command 4
@@ -112,12 +117,13 @@ async def setup_commands(client, **kwargs):
 	@app_commands.checks.has_permissions(administrator=True)
 	async def clear_payments(interaction: discord.Interaction):
 		"""Limpar a tabela de pagamentos pendentes"""
+		await interaction.response.defer(ephemeral=True, thinking=True)
 		guild_id = interaction.guild_id
 		client.MYSQL.clear_payments_table(table_name=str(guild_id))
 
+		ccc=Utils().translator("clear_payments", str(Utils(client).contLan(guild_id, 1)))
 		await interaction.followup.send(
-			content=f'O tabela {guild_id} foi resetada com sucesso!', 
-			ephemeral=True
+			content=f'{ccc}'.format(guild_id)
 		)
 
 	# command 5
@@ -126,9 +132,8 @@ async def setup_commands(client, **kwargs):
 	@app_commands.checks.has_permissions(administrator=True)
 	@app_commands.describe(language = "Definir linguagem do bot")
 	async def set_language(interaction: discord.Interaction, language: typing.Literal['Português', 'English']):
-		"""
-		Definir o idioma do bot.
-		"""
+		"""Definir o idioma do bot"""
+		await interaction.response.defer(ephemeral=True, thinking=True)
 		if language == "Português": language_ = "pt-br"
 		elif language == "English": language_ = "en-us"
 		else: language_ = "pt-br"
@@ -138,6 +143,7 @@ async def setup_commands(client, **kwargs):
 		client.MYSQL.create_languages_table(table_name=table_name)
 		client.MYSQL.save_language(guild_id, language_, table_name=table_name)
 
-		await interaction.response.send_message(
-			f'O idioma foi definido para {language} com sucesso!', ephemeral=True
+		ccc=Utils().translator("set_language", str(Utils(client).contLan(guild_id, 1)))
+		await interaction.followup.send(
+			content=f'{ccc}'.format(language)
 		)

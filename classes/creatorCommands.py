@@ -6,23 +6,34 @@ from . import (
 	Utils
 )
 
-async def CreatorCenter(client, **kwargs):
+async def CreatorCommands(client, **kwargs):
 	MY_GUILD = kwargs.get("MY_GUILD")
 	# command 1
 	@client.tree.command()
 	@app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.guild_id, i.user.id))
-	async def gettable_command(self, interaction: discord.Interaction) -> None:
+	@Decorators().is_bot_owner
+	@app_commands.guilds(MY_GUILD)
+	async def get_table_command(interaction: discord.Interaction) -> None:
 		"""gggg"""
-		connection = client.MYSQL.get_mysql_connection()
+		await interaction.response.defer(ephemeral=True, thinking=True)
 		guild_id  = interaction.guild_id
 		table_name = str(guild_id)
-		print(client.MYSQL.get_table_contents(connection, table_name=table_name))
-		await interaction.response.send_message("oi")
+		tables = client.MYSQL.get_table_contents(table_name=str(table_name))
+
+		for table in tables:
+			print(table)
+		
+		#ccc=Utils().translator("set_language", str(Utils(client).contLan(guild_id, 1)))
+		await interaction.followup.send(
+			content=f'teste'
+		)
 
 	# command 2
 	@client.tree.command()
 	@app_commands.checks.cooldown(1, 5.0, key=lambda i: (i.guild_id, i.user.id))
-	async def synccommand_command(self, interaction: discord.Interaction, guilds: typing.Optional[str] = None, spec: typing.Optional[typing.Literal[
+	@Decorators().is_bot_owner
+	@app_commands.guilds(MY_GUILD)
+	async def sync_command_command(interaction: discord.Interaction, guilds: typing.Optional[str] = None, spec: typing.Optional[typing.Literal[
 								"Clear and local sync",
 								"Clear local slash",
 								"Clear local message context",

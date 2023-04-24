@@ -416,7 +416,8 @@ class MySQL:
 		finally:
 			connection.close()
 	
-	def get_table_contents(self, table_name, connection=None):
+	def get_table_contents(self, connection=None, **kwargs):
+		table_name = kwargs.get("table_name")
 		connection = self.get_mysql_connection() if connection is None else connection
 		try:
 			with connection.cursor() as cursor:

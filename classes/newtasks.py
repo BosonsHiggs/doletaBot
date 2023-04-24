@@ -2,7 +2,8 @@ from . import (
 	discord,
     MISSING,
     asyncio,
-    tasks
+    tasks,
+    Utils
 )
 
 class CheckPaymentsTask(tasks.Loop):
@@ -12,7 +13,7 @@ class CheckPaymentsTask(tasks.Loop):
         self.kwargs = kwargs
         self.table_name = f"{guild_id}" or 'payments'
 
-        super().__init__(self.check_payments, seconds=20, hours=0, minutes=0, time=MISSING, count=None, reconnect=True)
+        super().__init__(self.check_payments, seconds=kwargs.get("seconds"), hours=0, minutes=kwargs.get("minutes"), time=MISSING, count=None, reconnect=True)
 
 
     async def check_payments(self):
@@ -32,7 +33,7 @@ class CheckPaymentsTask(tasks.Loop):
             
             if diff_time.days > 1: 
                 #MYSQL.update_payment_status(user_id, order_id, 'OLD', connection, table_name=str(guild_id))
-                self.client.MYSQL.delete_payment_by_order_id(order_id, connection, table_name=self.table_name)
+                self.client.MYSQL.delete_payment_by_order_id(order_id, table_name=self.table_name)
                 await asyncio.sleep(1)
                 continue
 
@@ -44,7 +45,7 @@ class CheckPaymentsTask(tasks.Loop):
                 # Give the user their role and send a message in the specified channel
                 guild = self.client.get_guild(int(self.client.MY_GUILD_DOLETA))
 
-                member = guild.get_member(int(self.client.UTILS.extract_numbers(user_id))) or await self.client.fetch_user(int(self.client.UTILS.extract_numbers(user_id)))
+                member = guild.get_member(int(Utils().extract_numbers(user_id))) or await self.client.fetch_user(int(Utils().extract_numbers(user_id)))
                 
                 channel = guild.get_channel(int(self.client.CHANNEL_SUPPORT))
 
@@ -52,7 +53,8 @@ class CheckPaymentsTask(tasks.Loop):
                 bot_role = bot_member.top_role
 
                 if bot_role.position == 0:
-                    await channel.send("O bot não possui permissões para criar ou modificar cargos.")
+                    ccc=Utils().translator("check_payments", str(Utils(self.client).contLan(self.guild_id, 1)))
+                    await channel.send(f"{ccc}")
                     return
                 
                 # Verificar se o cargo já existe
@@ -63,12 +65,13 @@ class CheckPaymentsTask(tasks.Loop):
 
                 await member.add_roles(role)
 
-                await channel.send(f'O pagamento de ordem `{order_id}` do {member.mention} (Name: {member} e ID: {member.id}) de R${amount} foi recebida com sucesso! 🥳')
+                ccc=Utils().translator("check_payments", str(Utils(self.client).contLan(self.guild_id, 2)))
+                await channel.send(f'{ccc} 🥳'.format(order_id, member.mention, member, member.id, amount))
 
                 # Update the payment status in the database
-                self.client.MYSQL.delete_payment_by_order_id(order_id, connection, table_name=self.table_name)
+                self.client.MYSQL.delete_payment_by_order_id(order_id, table_name=self.table_name)
                 try:
-                    self.client.MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', connection, table_name=self.table_name)
+                    self.client.MYSQL.update_payment_status(user_id, order_id, 'COMPLETED', table_name=self.table_name)
                 except:
                     pass
             await asyncio.sleep(2)

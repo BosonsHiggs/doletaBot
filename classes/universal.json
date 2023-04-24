@@ -76,5 +76,49 @@
             "11":"/set_language -> definir o idioma do bot",
             "12":"/set_language -> set bot language"
         }
+    ],
+    "payment": [
+        {
+            "1":"Houve um erro ao processar a compra!",
+            "2":"There was an error processing your order!",
+            "3":"O membro {0} (ID:`{1}`), comprou o produto de ordem `{2}` no valor de `R${3}`! Caso o cliente tenha enfrentado algum erro envie o link abaixo para ele continuar comprando:\n{4}!",
+            "4":"The member {0} (ID:`{1}`), bought the product of order `{2}` for `R${3}`! If the customer has faced an error, send the link below to continue shopping:\n{4}!",
+            "5":"Você está comprando R${0} e sua ordem é `{1}`!",
+            "6":"You are buying R${0} and your order is `{1}`!"
+        }
+    ],
+    "verify_order": [
+        {
+            "1":"O pagamento de ordem `{0}` já foi recebido!",
+            "2":"Payment for order `{0}` has already been received!",
+            "3":"O pagamento de ordem `{0}` ainda não foi pago!",
+            "4":"Payment for order `{0}` has not yet been paid!"
+        }
+    ],
+    "delete_all_table": [
+        {
+            "1":"A tabela {0} foi deletada com sucesso!",
+            "2":"Table {0} was successfully deleted!"
+        }
+    ],
+    "clear_payments": [
+        {
+            "1":"O tabela {0} foi resetada com sucesso!",
+            "2":"The table {0} was successfully reset!"
+        }
+    ],
+    "set_language": [
+        {
+            "1":"O idioma foi definido para {0} com sucesso!",
+            "2":"The language was successfully set to {0}!"
+        }
+    ],
+    "check_payments": [
+        {
+            "1":"O bot não possui permissões para criar ou modificar cargos!",
+            "2":"The bot does not have permissions to create or modify roles!",
+            "3":"O pagamento de ordem `{0}` do {1} (Name: {2} e ID: {3}) de R${4} foi recebida com sucesso!",
+            "4":"The payment of order `{0}` from {1} (Name: {2} and ID: {3}) of R${4} was successfully received!"
+        }
     ]
 }

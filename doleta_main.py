@@ -57,7 +57,6 @@ class MyClient(discord.Client):
 
 	async def on_ready(self) -> None:
 		for guild in self.guilds:
-			#connection = self.MYSQL.get_mysql_connection()
 			table_name = str(guild.id)
 
 			try:
@@ -66,7 +65,7 @@ class MyClient(discord.Client):
 				pass
 
 			try:
-				check_payments_task = CheckPaymentsTask(self, str(guild.id))
+				check_payments_task = CheckPaymentsTask(self, str(guild.id), seconds=0, minutes=5) #5x60s = 5min
 				check_payments_task.start()
 			except:
 				pass
@@ -155,7 +154,6 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 						app_commands.errors.MissingRole,
 						app_commands.errors.MissingAnyRole,
 						app_commands.errors.BotMissingPermissions,
-						app_commands.errors.CommandOnCooldown,
 						app_commands.errors.CommandInvokeError,
 						app_commands.errors.AppCommandError,
 						app_commands.errors.TransformerError,
@@ -208,7 +206,7 @@ async def main():
 		#Commands
 		await setup_commands(client)
 		await HelpCenter(client)
-		#await CreatorCenter(client, MY_GUILD=MY_GUILD)
+		await CreatorCommands(client, MY_GUILD=MY_GUILD) #creators only
 		
 		#Start client
 		await client.start(DISCORD_DOLETA_TOKEN)
