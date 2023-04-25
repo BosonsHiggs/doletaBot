@@ -25,13 +25,6 @@ I. Clone the repository:
 git git@github.com:BosonsHiggs/doletaBot.git
 ```
 
-III. Configure as variáveis de ambiente necessárias:
-- DISCORD_BOT_TOKEN: O token do seu bot no Discord.
-- PAGHIPER_API_KEY: Sua chave de API da PagHiper.
-- PAGHIPER_TOKEN: Seu token da PagHiper.
-- REDIS_URL: A URL de conexão com seu servidor Redis (exemplo: redis://localhost:6379).
-- REDIS_PASSWORD: A senha do seu servidor Redis, se aplicável.
-
 On Linux or MacOS:
 ```bash
 export DISCORD_BOT_TOKEN='your_discord_bot_token'
